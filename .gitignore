@@ -26,3 +26,4 @@ dist-ssr
 
 # vite build stats
 stats.html
+package-lock.json

@@ -35,7 +35,7 @@ export default function Header({ leftSlot }: HeaderProps) {
 			<div className="flex items-center gap-1">
 				<SearchBar />
 				<LocalePicker />
-				<Button
+				{/* <Button
 					variant="ghost"
 					size="icon"
 					className="rounded-full"
@@ -50,7 +50,7 @@ export default function Header({ leftSlot }: HeaderProps) {
 					onClick={() => window.open("https://discord.gg/fXemAXVNDa")}
 				>
 					<Icon icon="carbon:logo-discord" size={24} />
-				</Button>
+				</Button> */}
 				<NoticeButton />
 				<SettingButton />
 				<AccountDropdown />

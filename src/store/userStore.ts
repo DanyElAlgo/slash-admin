@@ -3,7 +3,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 import userService, { type SignInReq } from "@/api/services/userService";
-
+import { MOCK_USERS } from "@/types/mock-users";
 import { toast } from "sonner";
 import type { UserInfo, UserToken } from "#/entity";
 import { StorageEnum } from "#/enum";
@@ -16,6 +16,7 @@ type UserStore = {
 		setUserInfo: (userInfo: UserInfo) => void;
 		setUserToken: (token: UserToken) => void;
 		clearUserInfoAndToken: () => void;
+		switchUser: (userId: string) => void;
 	};
 };
 
@@ -33,6 +34,25 @@ const useUserStore = create<UserStore>()(
 				},
 				clearUserInfoAndToken() {
 					set({ userInfo: {}, userToken: {} });
+				},
+				switchUser: (userId: string) => {
+					const user = MOCK_USERS.find((u) => u.id === userId);
+					if (user) {
+						set({
+							userInfo: user,
+							userToken: {
+								accessToken: `mock-token-${userId}`,
+								refreshToken: `mock-refresh-${userId}`,
+							},
+						});
+						toast.success(`Switched to ${user.username}`, {
+							position: "top-center",
+						});
+					} else {
+						toast.error("User not found", {
+							position: "top-center",
+						});
+					}
 				},
 			},
 		}),

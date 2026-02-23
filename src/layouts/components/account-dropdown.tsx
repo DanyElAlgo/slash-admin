@@ -1,8 +1,15 @@
 import { useLoginStateContext } from "@/pages/sys/login/providers/login-provider";
 import { useRouter } from "@/routes/hooks";
 import { useUserActions, useUserInfo } from "@/store/userStore";
+import { MOCK_USERS } from "@/types/mock-users";
 import { Button } from "@/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/ui/dropdown-menu";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/ui/dropdown-menu";
 import { useTranslation } from "react-i18next";
 import { NavLink } from "react-router";
 
@@ -12,9 +19,10 @@ import { NavLink } from "react-router";
 export default function AccountDropdown() {
 	const { replace } = useRouter();
 	const { username, email, avatar } = useUserInfo();
-	const { clearUserInfoAndToken } = useUserActions();
+	const { clearUserInfoAndToken, switchUser } = useUserActions();
 	const { backToLogin } = useLoginStateContext();
 	const { t } = useTranslation();
+
 	const logout = () => {
 		try {
 			clearUserInfoAndToken();
@@ -53,6 +61,23 @@ export default function AccountDropdown() {
 				<DropdownMenuItem asChild>
 					<NavLink to="/management/user/account">{t("sys.nav.user.account")}</NavLink>
 				</DropdownMenuItem>
+				<DropdownMenuSeparator />
+				<div className="px-2 py-1.5 text-xs font-medium text-text-secondary">Switch User</div>
+				{MOCK_USERS.map((user) => (
+					<DropdownMenuItem
+						key={user.id}
+						onClick={() => switchUser(user.id)}
+						className={username === user.username ? "bg-accent" : ""}
+					>
+						<div className="flex items-center gap-2">
+							<img className="h-5 w-5 rounded-full" src={user.avatar} alt={user.username} />
+							<div className="flex flex-col items-start">
+								<div className="text-sm font-medium">{user.username}</div>
+								<div className="text-xs opacity-75">{user.roles?.[0]}</div>
+							</div>
+						</div>
+					</DropdownMenuItem>
+				))}
 				<DropdownMenuSeparator />
 				<DropdownMenuItem className="font-bold text-warning" onClick={logout}>
 					{t("sys.login.logout")}

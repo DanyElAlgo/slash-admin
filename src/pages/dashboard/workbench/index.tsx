@@ -115,7 +115,7 @@ export default function Workbench() {
 
 	return (
 		<div className="flex flex-col gap-4 w-full">
-			<BannerCard />
+			{/* <BannerCard /> */}
 			{/* 顶部四个统计卡片 */}
 			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 				{quickStats.map((stat) => (
@@ -179,7 +179,7 @@ export default function Workbench() {
 						<Chart type="area" height={220} options={chartOptions} series={monthlyRevenue.series} />
 					</CardContent>
 				</Card>
-				<Card className="flex flex-col gap-4 p-6">
+				{/* <Card className="flex flex-col gap-4 p-6">
 					<Text variant="body2" className="font-semibold  mb-2">
 						Project - {GLOBAL_CONFIG.appName}
 					</Text>
@@ -199,11 +199,11 @@ export default function Workbench() {
 					<Button className="w-full mt-auto" size="sm">
 						<Icon icon="mdi:plus" size={18} /> Add task
 					</Button>
-				</Card>
+				</Card> */}
 			</div>
 
 			{/* 项目概览区块 */}
-			<div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+			{/*<div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 				<Card className="lg:col-span-2 flex flex-col gap-4 p-6">
 					<Text variant="body2" className="font-semibold mb-2">
 						Project overview
@@ -257,7 +257,7 @@ export default function Workbench() {
 						<Icon icon="mdi:plus" size={20} />
 					</Button>
 				</Card>
-			</div>
+			</div>*/}
 
 			{/* 交易+收入区块 */}
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -318,7 +318,7 @@ export default function Workbench() {
 						<Button className="flex-1">Create new</Button>
 					</div>
 				</Card>
-				<Card className="flex flex-col p-6">
+				{/* <Card className="flex flex-col p-6">
 					<Text variant="body2" className="font-semibold  mb-2">
 						Total Income
 					</Text>
@@ -339,7 +339,7 @@ export default function Workbench() {
 							))}
 						</div>
 					</div>
-				</Card>
+				</Card> */}
 			</div>
 		</div>
 	);
