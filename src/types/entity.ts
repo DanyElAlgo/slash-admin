@@ -96,10 +96,16 @@ export type MenuTree = Menu & {
 export interface Product {
 	id: string;
 	name: string;
-	sku: string;
 	quantity: number;
 	price: number;
 	category: string;
+	warehouseId: string;
+	lastRestockDate?: string;
+}
+
+export interface Warehouse {
+	id: string;
+	name: string;
 }
 
 export interface StockMovement {

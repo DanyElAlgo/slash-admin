@@ -1,22 +1,6 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import type { UserInfo } from "@/types/entity";
-
-// Mock inventory data structure
-export interface Product {
-	id: string;
-	name: string;
-	quantity: number;
-	price: number;
-	category: string;
-	lastRestockDate: string;
-	warehouseId: string;
-}
-
-export interface Warehouse {
-	id: string;
-	name: string;
-}
+import type { Product, Warehouse } from "@/types/entity";
 
 export interface StockMovement {
 	id: string;
@@ -330,6 +314,7 @@ const useInventoryStore = create<InventoryStore>()(
 );
 
 export const useProducts = () => useInventoryStore((state) => state.products);
+export const useWarehouses = () => useInventoryStore((state) => state.warehouses);
 export const useStockMovements = () => useInventoryStore((state) => state.stockMovements);
 export const useInventoryActions = () => useInventoryStore((state) => state.actions);
 

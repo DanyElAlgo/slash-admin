@@ -51,7 +51,7 @@ export default function InventoryDashboard() {
 							<TableRow className={headerGridColsStyle}>
 								<TableHead className="col-span-2">Product Name</TableHead>
 								<TableHead>ID</TableHead>
-								<TableHead>WH (debug)</TableHead>
+								<TableHead>Warehouse (debug)</TableHead>
 								<TableHead>Quantity</TableHead>
 								<TableHead>Price</TableHead>
 								<TableHead>Total Value</TableHead>
@@ -68,23 +68,19 @@ export default function InventoryDashboard() {
 								products.map((product) => (
 									<TableRow key={product.id} className={gridColsStyle}>
 										<TableCell className="col-span-2 font-medium">{product.name}</TableCell>
-										<TableCell>{product.id}</TableCell>
+										<TableCell className="text-ellipsis overflow-hidden whitespace-nowrap">{product.id}</TableCell>
 										<TableCell>{product.warehouseId}</TableCell>
 										<TableCell>{product.quantity}</TableCell>
 										<TableCell>${product.price}</TableCell>
 										<TableCell>${(product.quantity * product.price).toLocaleString()}</TableCell>
-										<TableCell>
-											<span>{product.category}</span>
+										<TableCell>{product.category}</TableCell>
+										<TableCell className="flex justify-center">
+											{product.quantity < 10 ? (
+												<Badge className="bg-warning text-white">Low Stock</Badge>
+											) : (
+												<Badge className="bg-success text-white">In Stock</Badge>
+											)}
 										</TableCell>
-										{product.quantity < 10 ? (
-											<Badge className="h-min bg-warning flex justify-self-center self-center text-white">
-												Low Stock
-											</Badge>
-										) : (
-											<Badge className="h-min bg-success flex justify-self-center self-center text-white">
-												In Stock
-											</Badge>
-										)}
 									</TableRow>
 								))
 							)}
