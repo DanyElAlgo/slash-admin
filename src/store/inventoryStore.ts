@@ -6,11 +6,16 @@ import type { UserInfo } from "@/types/entity";
 export interface Product {
 	id: string;
 	name: string;
-	sku: string;
 	quantity: number;
 	price: number;
 	category: string;
 	lastRestockDate: string;
+	warehouseId: string;
+}
+
+export interface Warehouse {
+	id: string;
+	name: string;
 }
 
 export interface StockMovement {
@@ -26,11 +31,17 @@ export interface StockMovement {
 
 type InventoryStore = {
 	products: Product[];
+	warehouses: Warehouse[];
 	stockMovements: StockMovement[];
-	userInventoryData: Record<string, { products: Product[]; stockMovements: StockMovement[] }>;
+	userInventoryData: Record<string, { products: Product[]; warehouses: Warehouse[]; stockMovements: StockMovement[] }>;
 
 	actions: {
-		setUserInventoryData: (userId: string, products: Product[], movements: StockMovement[]) => void;
+		setUserInventoryData: (
+			userId: string,
+			products: Product[],
+			warehouses: Warehouse[],
+			movements: StockMovement[],
+		) => void;
 		loadUserData: (userId: string) => void;
 		addProduct: (product: Product) => void;
 		updateProduct: (productId: string, updates: Partial<Product>) => void;
@@ -41,84 +52,119 @@ type InventoryStore = {
 };
 
 // Mock data for each user
-const getMockDataForUser = (userId: string): { products: Product[]; movements: StockMovement[] } => {
+const getMockDataForUser = (
+	userId: string,
+): { products: Product[]; warehouses: Warehouse[]; movements: StockMovement[] } => {
 	const allProducts: Record<string, Product[]> = {
 		"user-1": [
 			{
 				id: "prod-1",
 				name: "Laptop",
-				sku: "SKU-001",
 				quantity: 15,
 				price: 1200,
 				category: "Electronics",
 				lastRestockDate: "2025-02-10",
+				warehouseId: "001",
 			},
 			{
 				id: "prod-2",
 				name: "Mouse",
-				sku: "SKU-002",
 				quantity: 45,
 				price: 25,
 				category: "Accessories",
 				lastRestockDate: "2025-02-08",
+				warehouseId: "001",
 			},
 			{
 				id: "prod-3",
 				name: "Keyboard",
-				sku: "SKU-003",
 				quantity: 32,
 				price: 75,
 				category: "Accessories",
 				lastRestockDate: "2025-02-05",
+				warehouseId: "001",
 			},
 		],
 		"user-2": [
 			{
 				id: "prod-1",
 				name: "Office Chair",
-				sku: "SKU-101",
 				quantity: 8,
 				price: 350,
 				category: "Furniture",
 				lastRestockDate: "2025-01-20",
+				warehouseId: "001",
 			},
 			{
 				id: "prod-2",
 				name: "Desk Lamp",
-				sku: "SKU-102",
 				quantity: 25,
 				price: 45,
 				category: "Lighting",
 				lastRestockDate: "2025-02-12",
+				warehouseId: "001",
 			},
 			{
 				id: "prod-3",
 				name: "File Cabinet",
-				sku: "SKU-103",
 				quantity: 5,
 				price: 200,
 				category: "Furniture",
 				lastRestockDate: "2025-02-01",
+				warehouseId: "001",
 			},
 		],
 		"user-3": [
 			{
 				id: "prod-1",
 				name: "Monitor",
-				sku: "SKU-201",
 				quantity: 12,
 				price: 300,
 				category: "Electronics",
 				lastRestockDate: "2025-02-09",
+				warehouseId: "001",
 			},
 			{
 				id: "prod-2",
 				name: "Webcam",
-				sku: "SKU-202",
 				quantity: 18,
 				price: 80,
 				category: "Electronics",
 				lastRestockDate: "2025-02-07",
+				warehouseId: "001",
+			},
+		],
+	};
+
+	const allWarehouses: Record<string, Warehouse[]> = {
+		"user-1": [
+			{
+				id: "001",
+				name: "Test Warehouse",
+			},
+			{
+				id: "002",
+				name: "Another test warehouse",
+			},
+		],
+		"user-2": [
+			{
+				id: "001",
+				name: "Text Warehouse",
+			},
+			{
+				id: "002",
+				name: "An extra warehouse to try out",
+			},
+		],
+		"user-3": [
+			{
+				id: "001",
+				name: "Tent Warehouse",
+			},
+			{
+				id: "003",
+				name: "This should be a warehouse",
 			},
 		],
 	};
@@ -184,6 +230,7 @@ const getMockDataForUser = (userId: string): { products: Product[]; movements: S
 
 	return {
 		products: allProducts[userId] || [],
+		warehouses: allWarehouses[userId] || [],
 		movements: allMovements[userId] || [],
 	};
 };
@@ -192,17 +239,24 @@ const useInventoryStore = create<InventoryStore>()(
 	persist(
 		(set, get) => ({
 			products: [],
+			warehouses: [],
 			stockMovements: [],
 			userInventoryData: {},
 
 			actions: {
-				setUserInventoryData: (userId: string, products: Product[], movements: StockMovement[]) => {
+				setUserInventoryData: (
+					userId: string,
+					products: Product[],
+					warehouses: Warehouse[],
+					movements: StockMovement[],
+				) => {
 					set((state) => ({
 						products,
+						warehouses,
 						stockMovements: movements,
 						userInventoryData: {
 							...state.userInventoryData,
-							[userId]: { products, stockMovements: movements },
+							[userId]: { products, warehouses, stockMovements: movements },
 						},
 					}));
 				},
@@ -211,16 +265,17 @@ const useInventoryStore = create<InventoryStore>()(
 					const { userInventoryData } = get();
 					// If user data exists in store, use it; otherwise, use mock data
 					if (userInventoryData[userId]) {
-						const { products, stockMovements } = userInventoryData[userId];
-						set({ products, stockMovements });
+						const { products, warehouses, stockMovements } = userInventoryData[userId];
+						set({ products, warehouses, stockMovements });
 					} else {
-						const { products, movements } = getMockDataForUser(userId);
+						const { products, warehouses, movements } = getMockDataForUser(userId);
 						set({
 							products,
+							warehouses,
 							stockMovements: movements,
 							userInventoryData: {
 								...userInventoryData,
-								[userId]: { products, stockMovements: movements },
+								[userId]: { products, warehouses, stockMovements: movements },
 							},
 						});
 					}

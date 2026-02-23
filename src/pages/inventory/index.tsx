@@ -13,8 +13,8 @@ export default function InventoryDashboard() {
 	const summary = getSummary(userId);
 
 	// Define grid columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr (proportional widths)
-	const gridColsStyle = "grid-cols-8";
-	const headerGridColsStyle = "grid-cols-8";
+	const gridColsStyle = "grid-cols-9";
+	const headerGridColsStyle = "grid-cols-9";
 
 	return (
 		<div className="space-y-6 p-6">
@@ -50,7 +50,8 @@ export default function InventoryDashboard() {
 						<TableHeader className={gridColsStyle}>
 							<TableRow className={headerGridColsStyle}>
 								<TableHead className="col-span-2">Product Name</TableHead>
-								<TableHead>SKU</TableHead>
+								<TableHead>ID</TableHead>
+								<TableHead>WH (debug)</TableHead>
 								<TableHead>Quantity</TableHead>
 								<TableHead>Price</TableHead>
 								<TableHead>Total Value</TableHead>
@@ -61,15 +62,14 @@ export default function InventoryDashboard() {
 						<TableBody>
 							{products.length === 0 ? (
 								<TableRow className={gridColsStyle}>
-									<TableCell colSpan={7} className="text-center py-8 text-text-secondary">
-										No products found
-									</TableCell>
+									<TableCell className="text-center py-8 text-text-secondary">No products found</TableCell>
 								</TableRow>
 							) : (
 								products.map((product) => (
 									<TableRow key={product.id} className={gridColsStyle}>
 										<TableCell className="col-span-2 font-medium">{product.name}</TableCell>
-										<TableCell>{product.sku}</TableCell>
+										<TableCell>{product.id}</TableCell>
+										<TableCell>{product.warehouseId}</TableCell>
 										<TableCell>{product.quantity}</TableCell>
 										<TableCell>${product.price}</TableCell>
 										<TableCell>${(product.quantity * product.price).toLocaleString()}</TableCell>
@@ -77,11 +77,14 @@ export default function InventoryDashboard() {
 											<span>{product.category}</span>
 										</TableCell>
 										{product.quantity < 10 ? (
-											<Badge className="bg-warning text-white">Low Stock</Badge>
+											<Badge className="h-min bg-warning flex justify-self-center self-center text-white">
+												Low Stock
+											</Badge>
 										) : (
-											<Badge className="bg-success text-white">In Stock</Badge>
+											<Badge className="h-min bg-success flex justify-self-center self-center text-white">
+												In Stock
+											</Badge>
 										)}
-										<TableCell></TableCell>
 									</TableRow>
 								))
 							)}

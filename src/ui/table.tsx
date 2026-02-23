@@ -17,7 +17,7 @@ function TableRow({ className, ...props }: React.ComponentProps<"div">) {
 	return (
 		<div
 			data-slot="table-row"
-			className={cn("group/data grid border-b transition-colors hover:bg-muted/50", className)}
+			className={cn("py-2 group/data grid border-b transition-colors hover:bg-muted/50", className)}
 			{...props}
 		/>
 	);
