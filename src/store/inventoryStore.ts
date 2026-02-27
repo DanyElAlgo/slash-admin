@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { Product, Warehouse } from "@/types/entity";
+import { sum } from "ramda";
 
 export interface StockMovement {
 	id: string;
@@ -31,7 +32,12 @@ type InventoryStore = {
 		updateProduct: (productId: string, updates: Partial<Product>) => void;
 		deleteProduct: (productId: string) => void;
 		addStockMovement: (movement: StockMovement) => void;
-		getSummary: (userId: string) => { totalProducts: number; totalValue: number; lowStockCount: number };
+		getSummary: (userId: string) => {
+			totalProducts: number;
+			totalStock: number;
+			totalValue: number;
+			lowStockCount: number;
+		};
 	};
 };
 
@@ -49,6 +55,15 @@ const getMockDataForUser = (
 				category: "Electronics",
 				lastRestockDate: "2025-02-10",
 				warehouseId: "001",
+			},
+			{
+				id: "prod-1",
+				name: "Laptop",
+				quantity: 15,
+				price: 1200,
+				category: "Electronics",
+				lastRestockDate: "2025-02-10",
+				warehouseId: "002",
 			},
 			{
 				id: "prod-2",
@@ -293,11 +308,13 @@ const useInventoryStore = create<InventoryStore>()(
 					const { products } = get();
 					const totalProducts = products.length;
 					const totalValue = products.reduce((sum, p) => sum + p.quantity * p.price, 0);
+					const totalStock = products.reduce((sum, p) => sum + p.quantity, 0);
 					const lowStockCount = products.filter((p) => p.quantity < 10).length;
 
 					return {
 						totalProducts,
 						totalValue,
+						totalStock,
 						lowStockCount,
 					};
 				},

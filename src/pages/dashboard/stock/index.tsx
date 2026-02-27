@@ -4,7 +4,7 @@ import { Card } from "@/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 import { Badge } from "@/ui/badge";
 
-export default function InventoryDashboard() {
+export default function Stock() {
 	const products = useProducts();
 	const { getSummary } = useInventoryActions();
 	const userInfo = useUserInfo();
@@ -12,32 +12,19 @@ export default function InventoryDashboard() {
 	const userId = userInfo?.id || "";
 	const summary = getSummary(userId);
 
-	// Group products by ID and sum quantities
-	const groupedProducts = products.reduce(
-		(acc, product) => {
-			const existing = acc.find((p) => p.id === product.id);
-			if (existing) {
-				existing.quantity += product.quantity;
-			} else {
-				acc.push({ ...product });
-			}
-			return acc;
-		},
-		[] as typeof products,
-	);
-
 	// Define grid columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr (proportional widths)
-	const gridColsStyle = "grid-cols-8";
-	const headerGridColsStyle = "grid-cols-8";
+	const gridColsStyle = "grid-cols-7";
+	const headerGridColsStyle = "grid-cols-7";
 
 	return (
 		<div className="space-y-6 p-6">
 			{/* Header */}
 			<div>
-				<h1 className="text-3xl font-bold">Inventory Management</h1>
-				<p className="text-text-secondary mt-1">
-					Logged in as: <span className="font-semibold text-text-primary">{userInfo?.username}</span>
-				</p>
+				<h1 className="text-3xl font-bold">Stock Management</h1>
+				<p className="font-semibold text-text-primary">Check the available stock of each product on each warehouse.</p>
+				{/* <p className="text-text-secondary mt-1">
+          Logged in as: <span className="font-semibold text-text-primary">{userInfo?.username}</span>
+        </p> */}
 			</div>
 
 			{/* Summary Cards */}
@@ -65,28 +52,28 @@ export default function InventoryDashboard() {
 							<TableRow className={headerGridColsStyle}>
 								<TableHead className="col-span-2">Product Name</TableHead>
 								<TableHead>ID</TableHead>
-								{/* <TableHead>Warehouse (debug)</TableHead> */}
+								<TableHead>Warehouse</TableHead>
 								<TableHead>Quantity</TableHead>
-								<TableHead>Price</TableHead>
-								<TableHead>Total Value</TableHead>
+								{/* <TableHead>Price</TableHead> */}
+								{/* <TableHead>Total Value</TableHead> */}
 								<TableHead>Category</TableHead>
 								<TableHead>Stock Status</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-							{groupedProducts.length === 0 ? (
+							{products.length === 0 ? (
 								<TableRow className={gridColsStyle}>
 									<TableCell className="text-center py-8 text-text-secondary">No products found</TableCell>
 								</TableRow>
 							) : (
-								groupedProducts.map((product) => (
+								products.map((product) => (
 									<TableRow key={product.id} className={gridColsStyle}>
 										<TableCell className="col-span-2 font-medium">{product.name}</TableCell>
 										<TableCell className="text-ellipsis overflow-hidden whitespace-nowrap">{product.id}</TableCell>
-										{/* <TableCell>{product.warehouseId}</TableCell> */}
+										<TableCell>{product.warehouseId}</TableCell>
 										<TableCell>{product.quantity}</TableCell>
-										<TableCell>${product.price}</TableCell>
-										<TableCell>${(product.quantity * product.price).toLocaleString()}</TableCell>
+										{/* <TableCell>${product.price}</TableCell> */}
+										{/* <TableCell>${(product.quantity * product.price).toLocaleString()}</TableCell> */}
 										<TableCell>{product.category}</TableCell>
 										<TableCell className="flex justify-center">
 											{product.quantity < 10 ? (

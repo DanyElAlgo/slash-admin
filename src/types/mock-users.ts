@@ -7,7 +7,7 @@ export interface MockUser extends UserInfo {
 export const MOCK_USERS: MockUser[] = [
 	{
 		id: "user-1",
-		username: "John Doe",
+		username: "Company 1",
 		email: "john@company1.com",
 		avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=John",
 		roles: ["admin"],
@@ -15,7 +15,7 @@ export const MOCK_USERS: MockUser[] = [
 	},
 	{
 		id: "user-2",
-		username: "Jane Smith",
+		username: "Company 2",
 		email: "jane@company2.com",
 		avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Jane",
 		roles: ["manager"],
@@ -23,7 +23,7 @@ export const MOCK_USERS: MockUser[] = [
 	},
 	{
 		id: "user-3",
-		username: "Mike Johnson",
+		username: "Company 3",
 		email: "mike@company3.com",
 		avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Mike",
 		roles: ["supervisor"],

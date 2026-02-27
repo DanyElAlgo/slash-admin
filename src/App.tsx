@@ -14,7 +14,7 @@ if (import.meta.env.DEV) {
 	import("react-scan").then(({ scan }) => {
 		scan({
 			enabled: false,
-			showToolbar: true,
+			showToolbar: false,
 			log: false,
 			animationSpeed: "fast",
 		});
