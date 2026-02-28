@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { Product, Warehouse } from "@/types/entity";
 import { sum } from "ramda";
+import inventoryService from "@/api/services/inventoryService";
 
 export interface StockMovement {
 	id: string;

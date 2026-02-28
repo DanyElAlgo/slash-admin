@@ -3,6 +3,10 @@ import { useUserInfo } from "@/store/userStore";
 import { Card } from "@/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 import { Badge } from "@/ui/badge";
+import { StockChangeDto } from "@/api/services/inventoryService";
+import inventoryService from "@/api/services/inventoryService";
+import { Button } from "@/ui/button";
+import { Route } from "react-router";
 
 export default function Stock() {
 	const products = useProducts();
@@ -13,8 +17,17 @@ export default function Stock() {
 	const summary = getSummary(userId);
 
 	// Define grid columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr (proportional widths)
-	const gridColsStyle = "grid-cols-7";
-	const headerGridColsStyle = "grid-cols-7";
+	const gridColsStyle = "grid-cols-8";
+	const headerGridColsStyle = "grid-cols-8";
+
+	const debugAddMoreProducts = (product: any) => {
+		inventoryService.addStock({
+			productId: 1,
+			warehouseId: 1,
+			quantity: product.quantity + 50,
+			reason: "debug",
+		});
+	};
 
 	return (
 		<div className="space-y-6 p-6">
@@ -58,6 +71,7 @@ export default function Stock() {
 								{/* <TableHead>Total Value</TableHead> */}
 								<TableHead>Category</TableHead>
 								<TableHead>Stock Status</TableHead>
+								<TableHead></TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
@@ -81,6 +95,9 @@ export default function Stock() {
 											) : (
 												<Badge className="bg-success text-white">In Stock</Badge>
 											)}
+										</TableCell>
+										<TableCell>
+											<Button onClick={() => debugAddMoreProducts(product)}>Edit</Button>
 										</TableCell>
 									</TableRow>
 								))
