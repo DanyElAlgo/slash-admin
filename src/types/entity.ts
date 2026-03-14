@@ -68,13 +68,13 @@ export interface Role extends CommonOptions {
 }
 
 export interface Permission extends CommonOptions {
-	id: string; // uuid
+	id: string;
 	name: string;
 	code: string; // resource:action  example: "user-management:read"
 }
 
 export interface Menu extends CommonOptions, MenuMetaInfo {
-	id: string; // uuid
+	id: string;
 	parentId: string;
 	name: string;
 	code: string;
@@ -93,26 +93,163 @@ export type MenuTree = Menu & {
 	children?: MenuTree[];
 };
 
-export interface Product {
-	id: string;
+export interface Business {
+	id: number;
 	name: string;
-	quantity: number;
-	price: number;
-	category: string;
-	warehouseId: string;
-	lastRestockDate?: string;
+}
+
+export interface Category {
+	id: number;
+	name: string;
+	description: string;
+	productCount?: number;
+}
+
+export interface Unit {
+	id: number;
+	name: string;
+	description: string;
+}
+
+export interface ProductStatus {
+	id: number;
+	name: string;
+	description: string;
+}
+
+export interface Product {
+	id: number;
+	name: string;
+	description: string;
+	unitId: number;
+	unitName?: string;
+	unitQty: number;
+	categoryId: number;
+	categoryName?: string;
+	statusId?: number;
+	statusName?: string;
+	isActive?: boolean;
+	totalStock?: number;
+	lowStockCount?: number;
 }
 
 export interface Warehouse {
-	id: string;
+	id: number;
+	businessId: number;
 	name: string;
 }
 
-export interface StockMovement {
-	id: string;
-	productId: string;
-	type: "in" | "out";
-	quantity: number;
+export interface WarehouseProduct {
+	id: number;
+	warehouseId: number;
+	warehouseName?: string;
+	productId: number;
+	productName?: string;
+	statusId: number;
+	statusName?: string;
+	stockLeft: number;
+	lowStockQty: number;
+	isLowStock?: boolean;
+}
+
+export interface KardexEntry {
+	id: number;
+	warehouseId: number;
+	productId: number;
+	actionType: string;
+	actionQty: number;
 	reason: string;
-	date: Date;
+	timeStamp: string;
+}
+
+export interface Customer {
+	id: number;
+	name: string;
+	phone: string;
+}
+
+export interface OrderStatus {
+	id: number;
+	name: string;
+	description: string;
+}
+
+export interface PaymentType {
+	id: number;
+	name: string;
+	description: string;
+}
+
+export interface OrderTicket {
+	id: number;
+	customerId: number;
+	customerName?: string;
+	statusId: number;
+	statusName?: string;
+	items?: OrderItem[];
+}
+
+export interface OrderItem {
+	id: number;
+	qty: number;
+	additionalNote: string;
+	orderId: number;
+	productId: number;
+	productName?: string;
+	statusId: number;
+	statusName?: string;
+}
+
+export interface Payment {
+	id: number;
+	orderId: number;
+	paymentTypeId: number;
+	paymentTypeName?: string;
+	paidAt: string;
+}
+
+export interface Waiter {
+	id: number;
+	name: string;
+	phone: string;
+}
+
+export interface StationType {
+	id: number;
+	name: string;
+	description: string;
+}
+
+export interface Station {
+	id: number;
+	name: string;
+	typeId: number;
+	typeName?: string;
+}
+
+export interface OrderCommand {
+	id: number;
+	orderId: number;
+	waiterId: number;
+	waiterName?: string;
+}
+
+export interface CommandItem {
+	id: number;
+	orderItemId: number;
+	commandId: number;
+	stationId: number;
+}
+
+export interface StationCoverage {
+	stationTypeId: number;
+	categoryId: number;
+}
+
+export interface PaginatedResult<T> {
+	items: T[];
+	totalCount: number;
+	pageNumber: number;
+	pageSize: number;
+	totalPages: number;
 }

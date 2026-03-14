@@ -1,7 +1,8 @@
-import { useLoginStateContext } from "@/pages/sys/login/providers/login-provider";
+import { Building2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { NavLink } from "react-router";
 import { useRouter } from "@/routes/hooks";
-import { useUserActions, useUserInfo } from "@/store/userStore";
-import { MOCK_USERS } from "@/types/mock-users";
+import { useCurrentBusiness, useUserActions, useUserInfo } from "@/store/userStore";
 import { Button } from "@/ui/button";
 import {
 	DropdownMenu,
@@ -10,42 +11,43 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/ui/dropdown-menu";
-import { useTranslation } from "react-i18next";
-import { NavLink } from "react-router";
 
-/**
- * Account Dropdown
- */
 export default function AccountDropdown() {
 	const { replace } = useRouter();
 	const { username, email, avatar } = useUserInfo();
-	const { clearUserInfoAndToken, switchUser } = useUserActions();
-	const { backToLogin } = useLoginStateContext();
+	const business = useCurrentBusiness();
+	const { clearUserInfoAndToken } = useUserActions();
 	const { t } = useTranslation();
 
 	const logout = () => {
 		try {
 			clearUserInfoAndToken();
-			backToLogin();
 		} catch (error) {
 			console.log(error);
 		} finally {
-			replace("/auth/login");
+			replace("/auth/select-business");
 		}
+	};
+
+	const switchBusiness = () => {
+		clearUserInfoAndToken();
+		replace("/auth/select-business");
 	};
 
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
 				<Button variant="ghost" size="icon" className="rounded-full">
-					<img className="h-6 w-6 rounded-full" src={avatar} alt="" />
+					{avatar ? <img className="h-6 w-6 rounded-full" src={avatar} alt="" /> : <Building2 className="h-5 w-5" />}
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent className="w-56">
 				<div className="flex items-center gap-2 p-2">
-					<img className="h-10 w-10 rounded-full" src={avatar} alt="" />
+					<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+						<Building2 className="h-5 w-5" />
+					</div>
 					<div className="flex flex-col items-start">
-						<div className="text-text-primary text-sm font-medium">{username}</div>
+						<div className="text-text-primary text-sm font-medium">{business?.name ?? username}</div>
 						<div className="text-text-secondary text-xs">{email}</div>
 					</div>
 				</div>
@@ -62,23 +64,10 @@ export default function AccountDropdown() {
 					<NavLink to="/management/user/account">{t("sys.nav.user.account")}</NavLink>
 				</DropdownMenuItem>
 				<DropdownMenuSeparator />
-				<div className="px-2 py-1.5 text-xs font-medium text-text-secondary">Switch User</div>
-				{MOCK_USERS.map((user) => (
-					<DropdownMenuItem
-						key={user.id}
-						onClick={() => switchUser(user.id)}
-						className={username === user.username ? "bg-accent" : ""}
-					>
-						<div className="flex items-center gap-2">
-							<img className="h-5 w-5 rounded-full" src={user.avatar} alt={user.username} />
-							<div className="flex flex-col items-start">
-								<div className="text-sm font-medium">{user.username}</div>
-								<div className="text-xs opacity-75">{user.roles?.[0]}</div>
-							</div>
-						</div>
-					</DropdownMenuItem>
-				))}
-				<DropdownMenuSeparator />
+				<DropdownMenuItem onClick={switchBusiness}>
+					<Building2 className="mr-2 h-4 w-4" />
+					Switch Company
+				</DropdownMenuItem>
 				<DropdownMenuItem className="font-bold text-warning" onClick={logout}>
 					{t("sys.login.logout")}
 				</DropdownMenuItem>

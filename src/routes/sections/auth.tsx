@@ -1,12 +1,18 @@
 import { Suspense, lazy } from "react";
-import { Outlet } from "react-router";
 import type { RouteObject } from "react-router";
+import { Outlet } from "react-router";
 
 const LoginPage = lazy(() => import("@/pages/sys/login"));
+const BusinessSelectPage = lazy(() => import("@/pages/sys/business-select"));
+
 const authCustom: RouteObject[] = [
 	{
 		path: "login",
 		element: <LoginPage />,
+	},
+	{
+		path: "select-business",
+		element: <BusinessSelectPage />,
 	},
 ];
 

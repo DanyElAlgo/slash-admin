@@ -1,6 +1,5 @@
 import { useCallback, useEffect } from "react";
-import { useUserActions, useUserToken, useUserInfo } from "@/store/userStore";
-import { useInventoryActions } from "@/store/inventoryStore";
+import { useUserActions, useUserToken } from "@/store/userStore";
 import { useRouter } from "../hooks";
 
 type Props = {
@@ -9,40 +8,30 @@ type Props = {
 export default function LoginAuthGuard({ children }: Props) {
 	const router = useRouter();
 	const { accessToken } = useUserToken();
-	const userInfo = useUserInfo();
-	const { setUserToken, setUserInfo } = useUserActions();
-	const { loadUserData } = useInventoryActions();
+	const { setUserToken, setUserInfo, setCurrentBusiness } = useUserActions();
 
 	const check = useCallback(() => {
 		if (!accessToken) {
 			// Bypass login in development mode
 			if (import.meta.env.DEV) {
-				// Set mock credentials for development
 				const mockUser = {
 					id: "dev-user-1",
 					username: "Dev Admin",
 					email: "admin@dev.local",
 					permissions: [],
-					roles: ["admin"],
+					roles: [{ id: "1", name: "admin", code: "admin" }],
 				};
 				setUserToken({
 					accessToken: "dev-mock-token",
 					refreshToken: "dev-mock-refresh",
 				});
 				setUserInfo(mockUser);
-				loadUserData(mockUser.id);
+				setCurrentBusiness({ id: 1, name: "Dev Business" });
 			} else {
-				router.replace("/auth/login");
+				router.replace("/auth/select-business");
 			}
 		}
-	}, [router, accessToken, setUserToken, setUserInfo, loadUserData]);
-
-	// Load inventory data when user changes
-	useEffect(() => {
-		if (userInfo?.id) {
-			loadUserData(userInfo.id);
-		}
-	}, [userInfo?.id, loadUserData]);
+	}, [router, accessToken, setUserToken, setUserInfo, setCurrentBusiness]);
 
 	useEffect(() => {
 		check();

@@ -5,10 +5,20 @@ import { Component } from "./utils";
 export function getFrontendDashboardRoutes(): RouteObject[] {
 	const frontendDashboardRoutes: RouteObject[] = [
 		{ path: "workbench", element: Component("/pages/dashboard/workbench") },
-		// { path: "analysis", element: Component("/pages/dashboard/analysis") },
 		{ path: "stock", element: Component("/pages/dashboard/stock") },
 		{ path: "inventory", element: Component("/pages/inventory") },
-		{ path: "edit", element: Component("/pages/dashboard/edit") },
+		{ path: "inventory/manage", element: Component("/pages/inventory/manage") },
+		{ path: "inventory/manage/:id", element: Component("/pages/inventory/manage") },
+
+		{
+			path: "sales",
+			children: [
+				{ index: true, element: <Navigate to="orders" replace /> },
+				{ path: "orders", element: Component("/pages/sales/orders") },
+				{ path: "customers", element: Component("/pages/sales/customers") },
+				{ path: "payments", element: Component("/pages/sales/payments") },
+			],
+		},
 		{
 			path: "components",
 			children: [
