@@ -131,6 +131,8 @@ export interface Product {
 	isActive?: boolean;
 	totalStock?: number;
 	lowStockCount?: number;
+	price: number;
+	isOutOfStock: boolean;
 }
 
 export interface Warehouse {
@@ -150,6 +152,7 @@ export interface WarehouseProduct {
 	stockLeft: number;
 	lowStockQty: number;
 	isLowStock?: boolean;
+	isOutOfStock: boolean;
 }
 
 export interface KardexEntry {
@@ -195,6 +198,7 @@ export interface OrderItem {
 	additionalNote: string;
 	orderId: number;
 	productId: number;
+	unitPrice: number;
 	productName?: string;
 	statusId: number;
 	statusName?: string;

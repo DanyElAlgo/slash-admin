@@ -11,7 +11,6 @@ import { Card } from "@/ui/card";
 import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 import { Textarea } from "@/ui/textarea";
 
 const STATUS_ON_ID = 1;
@@ -24,6 +23,7 @@ type ProductFormState = {
 	unitQty: string;
 	categoryId: string;
 	statusId: string;
+	price: string;
 };
 
 const EMPTY_PRODUCT_FORM: ProductFormState = {
@@ -32,6 +32,7 @@ const EMPTY_PRODUCT_FORM: ProductFormState = {
 	unitId: "",
 	unitQty: "1",
 	categoryId: "",
+	price: "5",
 	statusId: String(STATUS_ON_ID),
 };
 
@@ -54,6 +55,7 @@ function toProductForm(product: Product): ProductFormState {
 		unitId: product.unitId ? String(product.unitId) : "",
 		unitQty: product.unitQty ? String(product.unitQty) : "1",
 		categoryId: product.categoryId ? String(product.categoryId) : "",
+		price: String(product.price ?? 0),
 		statusId: String(product.statusId ?? (product.isActive === false ? STATUS_OFF_ID : STATUS_ON_ID)),
 	};
 }
@@ -132,6 +134,12 @@ export default function InventoryManagePage() {
 			return;
 		}
 
+		const priceValue = Number(productForm.price);
+		if (!Number.isFinite(priceValue) || priceValue <= 0) {
+			toast.error("Price must be greater than zero.");
+			return;
+		}
+
 		const payload: ProductCreateDto = {
 			name: productForm.name.trim(),
 			description: productForm.description.trim() || undefined,
@@ -140,6 +148,7 @@ export default function InventoryManagePage() {
 			categoryId: productForm.categoryId ? Number(productForm.categoryId) : undefined,
 			statusId: productForm.statusId ? Number(productForm.statusId) : STATUS_ON_ID,
 			isActive: (productForm.statusId ? Number(productForm.statusId) : STATUS_ON_ID) === STATUS_ON_ID,
+			price: priceValue,
 		};
 
 		setSubmittingProduct(true);
@@ -360,6 +369,18 @@ export default function InventoryManagePage() {
 					</div>
 
 					<div className="space-y-2">
+						<Label htmlFor="product-price">Price</Label>
+						<Input
+							id="product-price"
+							type="number"
+							min={0.01}
+							step={0.01}
+							value={productForm.price}
+							onChange={(event) => handleProductField("price", event.target.value)}
+						/>
+					</div>
+
+					{/* <div className="space-y-2">
 						<Label>Status</Label>
 						<Select value={productForm.statusId} onValueChange={(value) => handleProductField("statusId", value)}>
 							<SelectTrigger className="w-full">
@@ -370,7 +391,7 @@ export default function InventoryManagePage() {
 								<SelectItem value={String(STATUS_OFF_ID)}>Off</SelectItem>
 							</SelectContent>
 						</Select>
-					</div>
+					</div> */}
 				</div>
 
 				<div className="mt-6 flex flex-wrap items-center gap-2">

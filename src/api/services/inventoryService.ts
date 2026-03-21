@@ -17,6 +17,7 @@ export interface ProductCreateDto {
 	categoryId?: number;
 	statusId?: number;
 	isActive?: boolean;
+	price: number;
 }
 
 export interface ProductSearchDto {

@@ -7,6 +7,10 @@ export function getFrontendDashboardRoutes(): RouteObject[] {
 		{ path: "workbench", element: Component("/pages/dashboard/workbench") },
 		{ path: "stock", element: Component("/pages/dashboard/stock") },
 		{ path: "inventory", element: Component("/pages/inventory") },
+		{ path: "inventory/categories", element: Component("/pages/inventory/categories") },
+		{ path: "inventory/units", element: Component("/pages/inventory/units") },
+		{ path: "inventory/products", element: Component("/pages/inventory/products") },
+		{ path: "inventory/stock-management", element: Component("/pages/inventory/stock-management") },
 		{ path: "inventory/manage", element: Component("/pages/inventory/manage") },
 		{ path: "inventory/manage/:id", element: Component("/pages/inventory/manage") },
 
@@ -17,6 +21,9 @@ export function getFrontendDashboardRoutes(): RouteObject[] {
 				{ path: "orders", element: Component("/pages/sales/orders") },
 				{ path: "customers", element: Component("/pages/sales/customers") },
 				{ path: "payments", element: Component("/pages/sales/payments") },
+				{ path: "tax-config", element: Component("/pages/sales/tax-config") },
+				{ path: "pos", element: Component("/pages/sales/pos") },
+				{ path: "kds", element: Component("/pages/sales/kds") },
 			],
 		},
 		{
