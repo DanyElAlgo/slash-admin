@@ -1,18 +1,47 @@
-import { Clock, RefreshCw } from "lucide-react";
+import { ChefHat, Printer, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import posService, { type KDSItem } from "@/api/services/posService";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 
+function getStatusColor(status: string): string {
+	const s = status.toLowerCase();
+	if (s.includes("preparac") || s.includes("preparation")) return "border-l-blue-500";
+	return "border-l-amber-500";
+}
+
+function getStatusLabel(status: string): string {
+	const s = status.toLowerCase();
+	if (s.includes("preparac") || s.includes("preparation")) return "En Preparación";
+	if (s.includes("listo") || s.includes("ready")) return "Listo";
+	return "Pendiente";
+}
+
+function isInPreparation(status: string): boolean {
+	const s = status.toLowerCase();
+	return s.includes("preparac") || s.includes("preparation");
+}
+
 export default function KDSPage() {
-	const [stationType, setStationType] = useState<"Cocina" | "Bar">("Cocina");
+	const [stationType, setStationType] = useState<string>("cocina");
 	const [items, setItems] = useState<KDSItem[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [refreshing, setRefreshing] = useState(false);
 	const [autoRefresh, setAutoRefresh] = useState(true);
+	const [advancingId, setAdvancingId] = useState<number | null>(null);
+
+	// Reprint dialog
+	const [reprintData, setReprintData] = useState<{
+		commandId: number;
+		ticketId: number;
+		waiterName: string;
+		printedAt: string;
+		items: { productName: string; quantity: number; note?: string; stationName: string }[];
+	} | null>(null);
 
 	const loadKDSItems = useCallback(async () => {
 		setLoading(true);
@@ -33,11 +62,9 @@ export default function KDSPage() {
 
 	useEffect(() => {
 		if (!autoRefresh) return;
-
 		const interval = setInterval(() => {
 			loadKDSItems();
-		}, 5000); // Refresh every 5 seconds
-
+		}, 5000);
 		return () => clearInterval(interval);
 	}, [autoRefresh, loadKDSItems]);
 
@@ -51,19 +78,38 @@ export default function KDSPage() {
 		}
 	};
 
-	const getTimeAgo = (createdAt: string): string => {
-		const now = new Date();
-		const created = new Date(createdAt);
-		const diffMs = now.getTime() - created.getTime();
-		const diffMins = Math.floor(diffMs / 60000);
-		const diffSecs = Math.floor((diffMs % 60000) / 1000);
-
-		if (diffMins === 0) return `${diffSecs}s ago`;
-		if (diffMins === 1) return "1 min ago";
-		if (diffMins < 60) return `${diffMins}m ago`;
-		const diffHours = Math.floor(diffMins / 60);
-		return `${diffHours}h ago`;
+	const handleAdvanceStatus = async (item: KDSItem) => {
+		setAdvancingId(item.orderItemId);
+		try {
+			const updated = await posService.advanceKdsItemStatus(item.orderItemId);
+			const updatedStatus = updated.status?.toLowerCase() ?? "";
+			if (updatedStatus.includes("listo") || updatedStatus.includes("ready")) {
+				setItems((prev) => prev.filter((i) => i.orderItemId !== item.orderItemId));
+				toast.success(`${item.productName} marcado como Listo`);
+			} else {
+				setItems((prev) => prev.map((i) => (i.orderItemId === item.orderItemId ? updated : i)));
+				toast.success(`${item.productName} → En Preparación`);
+			}
+		} catch (error) {
+			toast.error("Failed to update item status");
+			console.error(error);
+		} finally {
+			setAdvancingId(null);
+		}
 	};
+
+	const handleReprint = async (item: KDSItem) => {
+		try {
+			const data = await posService.getCommandReprint(item.commandId);
+			setReprintData(data);
+		} catch (error) {
+			toast.error("Failed to load command data");
+			console.error(error);
+		}
+	};
+
+	const pendingCount = items.filter((i) => !isInPreparation(i.status)).length;
+	const inPrepCount = items.filter((i) => isInPreparation(i.status)).length;
 
 	return (
 		<div className="space-y-6 p-6 bg-background min-h-screen">
@@ -74,13 +120,13 @@ export default function KDSPage() {
 					<p className="text-muted-foreground">Manage and prepare pending orders</p>
 				</div>
 				<div className="flex items-center gap-4">
-					<Select value={stationType} onValueChange={(v) => setStationType(v as "Cocina" | "Bar")}>
+					<Select value={stationType} onValueChange={(v) => setStationType(v)}>
 						<SelectTrigger className="w-32">
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>
-							<SelectItem value="Cocina">Kitchen</SelectItem>
-							<SelectItem value="Bar">Bar</SelectItem>
+							<SelectItem value="cocina">Kitchen</SelectItem>
+							<SelectItem value="bar">Bar</SelectItem>
 						</SelectContent>
 					</Select>
 
@@ -98,31 +144,33 @@ export default function KDSPage() {
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 				<Card>
 					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-medium">Pending Orders</CardTitle>
+						<CardTitle className="text-sm font-medium">Pendientes</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<div className="text-3xl font-bold">{items.length}</div>
-						<p className="text-xs text-muted-foreground">Items to prepare</p>
+						<div className="text-3xl font-bold text-amber-500">{pendingCount}</div>
+						<p className="text-xs text-muted-foreground">Items por preparar</p>
 					</CardContent>
 				</Card>
 
 				<Card>
 					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-medium">Station</CardTitle>
+						<CardTitle className="text-sm font-medium">En Preparación</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className="text-3xl font-bold text-blue-500">{inPrepCount}</div>
+						<p className="text-xs text-muted-foreground">Items en proceso</p>
+					</CardContent>
+				</Card>
+
+				<Card>
+					<CardHeader className="pb-2">
+						<CardTitle className="text-sm font-medium">Estación Activa</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<div className="text-3xl font-bold">{stationType}</div>
-						<p className="text-xs text-muted-foreground">Active station</p>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-medium">Last Updated</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="text-sm font-mono">Now</div>
-						<p className="text-xs text-muted-foreground">Real-time updates</p>
+						<p className="text-xs text-muted-foreground">
+							{autoRefresh ? "Auto-refresh cada 5 segundos" : "Actualización manual"}
+						</p>
 					</CardContent>
 				</Card>
 			</div>
@@ -134,23 +182,36 @@ export default function KDSPage() {
 				</div>
 			) : items.length === 0 ? (
 				<div className="flex flex-col items-center justify-center py-12 bg-muted/50 rounded-lg">
+					<ChefHat className="h-12 w-12 text-muted-foreground mb-4" />
 					<p className="text-lg font-medium mb-2">No pending orders</p>
 					<p className="text-muted-foreground">Check back soon!</p>
 				</div>
 			) : (
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 					{items.map((item) => (
-						<Card key={item.itemId} className="overflow-hidden border-l-4 border-l-amber-500">
+						<Card
+							key={`${item.commandId}-${item.orderItemId}`}
+							className={`overflow-hidden border-l-4 ${getStatusColor(item.status)}`}
+						>
 							<CardHeader>
 								<div className="flex items-start justify-between">
 									<div>
-										<CardTitle className="text-lg">Ticket #{item.ticketNumber}</CardTitle>
-										<CardDescription>
-											<Clock className="inline h-3 w-3 mr-1" />
-											{getTimeAgo(item.createdAt)}
-										</CardDescription>
+										<CardTitle className="text-lg">Ticket #{item.ticketId}</CardTitle>
+										<CardDescription>{item.stationName}</CardDescription>
 									</div>
-									<Badge variant="outline">{item.quantity}x</Badge>
+									<div className="flex flex-col items-end gap-1">
+										<Badge variant="outline">{item.quantity}x</Badge>
+										<Badge
+											variant="secondary"
+											className={
+												isInPreparation(item.status)
+													? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+													: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200"
+											}
+										>
+											{getStatusLabel(item.status)}
+										</Badge>
+									</div>
 								</div>
 							</CardHeader>
 							<CardContent className="space-y-4">
@@ -159,10 +220,10 @@ export default function KDSPage() {
 									<p className="text-sm text-muted-foreground mt-1">Qty: {item.quantity}</p>
 								</div>
 
-								{item.notes && (
+								{item.note && (
 									<div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded p-3">
 										<p className="text-xs font-medium text-yellow-900 dark:text-yellow-100">Special instructions:</p>
-										<p className="text-sm text-yellow-800 dark:text-yellow-200 mt-1">{item.notes}</p>
+										<p className="text-sm text-yellow-800 dark:text-yellow-200 mt-1">{item.note}</p>
 									</div>
 								)}
 
@@ -170,21 +231,17 @@ export default function KDSPage() {
 									<Button
 										className="flex-1"
 										size="sm"
-										onClick={() => {
-											toast.success(`Item ${item.productName} marked as completed`);
-										}}
+										disabled={advancingId === item.orderItemId}
+										onClick={() => handleAdvanceStatus(item)}
 									>
-										✓ Mark Done
+										{advancingId === item.orderItemId
+											? "..."
+											: isInPreparation(item.status)
+												? "✓ Mark Ready"
+												: "⚡ Start Preparing"}
 									</Button>
-									<Button
-										variant="outline"
-										className="flex-1"
-										size="sm"
-										onClick={() => {
-											toast.info(`Reminder sent for ${item.productName}`);
-										}}
-									>
-										⏰ Remind
+									<Button variant="outline" size="sm" onClick={() => handleReprint(item)} title="Reprint command">
+										<Printer className="h-4 w-4" />
 									</Button>
 								</div>
 							</CardContent>
@@ -193,12 +250,50 @@ export default function KDSPage() {
 				</div>
 			)}
 
-			{/* Footer Note */}
+			{/* Footer */}
 			<div className="text-center text-xs text-muted-foreground py-4 border-t">
 				<p>
 					{autoRefresh ? "Auto-refreshing every 5 seconds" : "Manual refresh enabled"} | Total Items: {items.length}
 				</p>
 			</div>
+
+			{/* Reprint Dialog */}
+			<Dialog open={reprintData !== null} onOpenChange={(open) => !open && setReprintData(null)}>
+				<DialogContent className="max-w-md">
+					<DialogHeader>
+						<DialogTitle>Comanda — Ticket #{reprintData?.ticketId}</DialogTitle>
+					</DialogHeader>
+					{reprintData && (
+						<div className="space-y-4">
+							<div className="text-sm text-muted-foreground">
+								<p>Mesero: {reprintData.waiterName || "—"}</p>
+								<p>Impreso: {new Date(reprintData.printedAt).toLocaleString()}</p>
+							</div>
+							<div className="border rounded divide-y">
+								{reprintData.items.map((ri, idx) => (
+									<div key={idx} className="p-3">
+										<div className="flex justify-between font-medium">
+											<span>{ri.productName}</span>
+											<span>x{ri.quantity}</span>
+										</div>
+										<p className="text-xs text-muted-foreground">{ri.stationName}</p>
+										{ri.note && <p className="text-xs text-yellow-700 mt-1">Nota: {ri.note}</p>}
+									</div>
+								))}
+							</div>
+							<div className="flex justify-end gap-2">
+								<Button variant="outline" onClick={() => setReprintData(null)}>
+									Cerrar
+								</Button>
+								<Button onClick={() => window.print()}>
+									<Printer className="mr-2 h-4 w-4" />
+									Imprimir
+								</Button>
+							</div>
+						</div>
+					)}
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }

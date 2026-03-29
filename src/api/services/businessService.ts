@@ -1,9 +1,9 @@
 import type { Business } from "@/types/entity";
-import apiClient from "../apiClient";
+import { inventoryApiClient } from "../apiClient";
 
 const businessService = {
-	getBusinesses: () => apiClient.get<Business[]>({ url: "/businesses" }),
-	getBusiness: (id: number) => apiClient.get<Business>({ url: `/businesses/${id}` }),
+	getBusinesses: () => inventoryApiClient.get<Business[]>({ url: "/businesses" }),
+	getBusiness: (id: number) => inventoryApiClient.get<Business>({ url: `/businesses/${id}` }),
 };
 
 export default businessService;

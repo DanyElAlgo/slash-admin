@@ -1,4 +1,4 @@
-import { AlertCircle, Package, Plus, Trash2 } from "lucide-react";
+import { Package } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import inventoryService from "@/api/services/inventoryService";
@@ -9,8 +9,6 @@ import { Card } from "@/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/ui/dialog";
 import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
-import { Switch } from "@/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 import { Textarea } from "@/ui/textarea";
 
@@ -29,7 +27,6 @@ export default function StockManagementPage() {
 	const [formData, setFormData] = useState({
 		quantity: "",
 		reason: "",
-		outOfStock: false,
 	});
 
 	const loadData = useCallback(async () => {
@@ -71,7 +68,6 @@ export default function StockManagementPage() {
 		setFormData({
 			quantity: "",
 			reason: mode === "set" ? "Initial stock" : "",
-			outOfStock: warehouseProduct.isOutOfStock || false,
 		});
 		setIsDialogOpen(true);
 	};
@@ -79,11 +75,7 @@ export default function StockManagementPage() {
 	const handleCloseDialog = () => {
 		setIsDialogOpen(false);
 		setSelectedWarehouseProduct(null);
-		setFormData({
-			quantity: "",
-			reason: "",
-			outOfStock: false,
-		});
+		setFormData({ quantity: "", reason: "" });
 	};
 
 	const handleSave = async () => {
@@ -120,7 +112,6 @@ export default function StockManagementPage() {
 					reason: formData.reason,
 				});
 			} else {
-				// remove
 				const currentStock = selectedWarehouseProduct.stockLeft || 0;
 				if (quantity > currentStock) {
 					toast.error(`Cannot remove ${quantity} units. Current stock: ${currentStock}`);
@@ -134,19 +125,23 @@ export default function StockManagementPage() {
 				});
 			}
 
-			// Handle out of stock status if needed
-			if (formData.outOfStock !== (selectedWarehouseProduct.isOutOfStock || false)) {
-				await inventoryService.updateWarehouseProduct(selectedWarehouseProduct.id, {
-					...selectedWarehouseProduct,
-					isOutOfStock: formData.outOfStock,
-				});
-			}
-
 			toast.success("Stock updated successfully");
 			handleCloseDialog();
 			loadData();
 		} catch (error) {
 			toast.error("Failed to update stock");
+			console.error(error);
+		}
+	};
+
+	const handleToggleOutOfStock = async (wp: WarehouseProduct) => {
+		const newValue = !wp.isOutOfStock;
+		try {
+			await inventoryService.setOutOfStock(wp.warehouseId, wp.productId, newValue);
+			toast.success(newValue ? "Product marked as out of stock" : "Product marked as available");
+			loadData();
+		} catch (error) {
+			toast.error("Failed to update out of stock status");
 			console.error(error);
 		}
 	};
@@ -185,7 +180,7 @@ export default function StockManagementPage() {
 							<TableHead>Warehouse</TableHead>
 							<TableHead className="text-right">Stock</TableHead>
 							<TableHead>Status</TableHead>
-							<TableHead className="w-40 text-right">Actions</TableHead>
+							<TableHead className="w-56 text-right">Actions</TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>
@@ -218,6 +213,13 @@ export default function StockManagementPage() {
 											</Button>
 											<Button variant="ghost" size="sm" onClick={() => handleOpenDialog(wp, "remove")}>
 												-Remove
+											</Button>
+											<Button
+												variant={wp.isOutOfStock ? "outline" : "destructive"}
+												size="sm"
+												onClick={() => handleToggleOutOfStock(wp)}
+											>
+												{wp.isOutOfStock ? "Available" : "Agotado"}
 											</Button>
 										</TableCell>
 									</TableRow>
@@ -269,15 +271,6 @@ export default function StockManagementPage() {
 										onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
 										placeholder="Why are you making this adjustment?"
 										rows={3}
-									/>
-								</div>
-
-								<div className="flex items-center justify-between p-3 bg-muted rounded">
-									<Label htmlFor="outOfStock">Mark as Out of Stock</Label>
-									<Switch
-										id="outOfStock"
-										checked={formData.outOfStock}
-										onCheckedChange={(checked) => setFormData({ ...formData, outOfStock: checked })}
 									/>
 								</div>
 

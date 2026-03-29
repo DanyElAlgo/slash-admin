@@ -257,3 +257,66 @@ export interface PaginatedResult<T> {
 	pageSize: number;
 	totalPages: number;
 }
+
+export interface StationTypeWithDetails {
+	id: number;
+	name: string;
+	description?: string;
+	categoryIds: number[];
+	stations: Station[];
+}
+
+export interface CheckoutResult {
+	success: boolean;
+	message: string;
+	paymentId?: number;
+	total: number;
+}
+
+export interface SalesDashboard {
+	totalSoldToday: number;
+	paidTicketsToday: number;
+	avgTicketToday: number;
+}
+
+export interface TopProduct {
+	productId: number;
+	productName: string;
+	totalQtySold: number;
+	totalRevenue: number;
+}
+
+export interface KdsStatusSummary {
+	pendingCount: number;
+	inPreparationCount: number;
+	readyCount: number;
+}
+
+export interface StockAlertEntry {
+	productId: number;
+	productName: string;
+	warehouseName: string;
+	stockLeft: number;
+	lowStockQty: number;
+	isOutOfStock: boolean;
+}
+
+export interface StockAlertsDashboard {
+	outOfStock: StockAlertEntry[];
+	lowStock: StockAlertEntry[];
+}
+
+export interface CommandReprintItem {
+	productName: string;
+	quantity: number;
+	note?: string;
+	stationName: string;
+}
+
+export interface CommandReprint {
+	commandId: number;
+	ticketId: number;
+	waiterName: string;
+	printedAt: string;
+	items: CommandReprintItem[];
+}

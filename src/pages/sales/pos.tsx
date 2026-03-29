@@ -1,10 +1,10 @@
-import { ChevronRight, Minus, Plus, Trash2, Zap } from "lucide-react";
+import { Plus, Trash2, Zap } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import inventoryService from "@/api/services/inventoryService";
 import posService, { type AccountResponse } from "@/api/services/posService";
 import salesService from "@/api/services/salesService";
-import type { OrderItem, Product } from "@/types/entity";
+import type { PaymentType, Product } from "@/types/entity";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card";
@@ -19,7 +19,7 @@ export default function POSPage() {
 	const [openAccounts, setOpenAccounts] = useState<AccountResponse[]>([]);
 	const [selectedAccount, setSelectedAccount] = useState<AccountResponse | null>(null);
 	const [products, setProducts] = useState<Product[]>([]);
-	const [waiters, setWaiters] = useState<{ id: number; name: string }[]>([]);
+	const [paymentTypes, setPaymentTypes] = useState<PaymentType[]>([]);
 	const [loading, setLoading] = useState(true);
 
 	// Dialog states
@@ -27,38 +27,31 @@ export default function POSPage() {
 	const [isEditItemDialogOpen, setIsEditItemDialogOpen] = useState(false);
 	const [isCreateAccountDialogOpen, setIsCreateAccountDialogOpen] = useState(false);
 	const [isAssignWaiterDialogOpen, setIsAssignWaiterDialogOpen] = useState(false);
+	const [isCheckoutDialogOpen, setIsCheckoutDialogOpen] = useState(false);
+	const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
 
 	// Form states
-	const [addItemForm, setAddItemForm] = useState({
-		productId: "",
-		quantity: 1,
-		notes: "",
-	});
-
-	const [editItemForm, setEditItemForm] = useState({
-		itemId: 0,
-		quantity: 1,
-		notes: "",
-	});
-
-	const [assignWaiterForm, setAssignWaiterForm] = useState({
-		waiterId: "",
-	});
+	const [addItemForm, setAddItemForm] = useState({ productId: "", quantity: 1, notes: "" });
+	const [editItemForm, setEditItemForm] = useState({ itemId: 0, quantity: 1, notes: "" });
+	const [assignWaiterForm, setAssignWaiterForm] = useState({ waiterId: "" });
+	const [checkoutPaymentTypeId, setCheckoutPaymentTypeId] = useState<string>("");
 
 	const [searchProductTerm, setSearchProductTerm] = useState("");
 	const [sendingCommand, setSendingCommand] = useState(false);
+	const [checkingOut, setCheckingOut] = useState(false);
+	const [cancelling, setCancelling] = useState(false);
 
 	const loadAllData = useCallback(async () => {
 		setLoading(true);
 		try {
-			const [accountsData, productsData, waitersData] = await Promise.all([
+			const [accountsData, productsData, paymentTypesData] = await Promise.all([
 				posService.getOpenAccounts(),
 				inventoryService.getProducts(),
-				posService.getWaiters().catch(() => []),
+				salesService.getPaymentTypes(),
 			]);
 			setOpenAccounts(accountsData);
 			setProducts(productsData.filter((p) => p.isActive && !p.isOutOfStock));
-			setWaiters(waitersData);
+			setPaymentTypes(paymentTypesData);
 		} catch (error) {
 			toast.error("Failed to load data");
 			console.error(error);
@@ -77,7 +70,7 @@ export default function POSPage() {
 
 	const handleCreateAccount = async () => {
 		try {
-			const response = await posService.createAccount({ businessId: 1 }); // TODO: Get from context
+			const response = await posService.createAccount();
 			setOpenAccounts([...openAccounts, response]);
 			setSelectedAccount(response);
 			toast.success("Account created successfully");
@@ -93,7 +86,6 @@ export default function POSPage() {
 			toast.error("Please select a waiter");
 			return;
 		}
-
 		try {
 			const response = await posService.assignWaiter(selectedAccount.ticketId, {
 				waiterId: Number(assignWaiterForm.waiterId),
@@ -118,12 +110,11 @@ export default function POSPage() {
 			toast.error("Please select a product and quantity");
 			return;
 		}
-
 		try {
 			const response = await posService.addItem(selectedAccount.ticketId, {
 				productId: Number(addItemForm.productId),
 				quantity: addItemForm.quantity,
-				notes: addItemForm.notes,
+				note: addItemForm.notes,
 			});
 			setSelectedAccount(response);
 			setOpenAccounts(openAccounts.map((a) => (a.ticketId === response.ticketId ? response : a)));
@@ -139,11 +130,10 @@ export default function POSPage() {
 
 	const handleUpdateItem = async (itemId: number) => {
 		if (!selectedAccount) return;
-
 		try {
 			const response = await posService.updateItem(selectedAccount.ticketId, itemId, {
 				quantity: editItemForm.quantity,
-				notes: editItemForm.notes,
+				note: editItemForm.notes,
 			});
 			setSelectedAccount(response);
 			setOpenAccounts(openAccounts.map((a) => (a.ticketId === response.ticketId ? response : a)));
@@ -157,7 +147,6 @@ export default function POSPage() {
 
 	const handleRemoveItem = async (itemId: number) => {
 		if (!selectedAccount) return;
-
 		try {
 			const response = await posService.removeItem(selectedAccount.ticketId, itemId);
 			setSelectedAccount(response);
@@ -171,22 +160,18 @@ export default function POSPage() {
 
 	const handleSendCommand = async () => {
 		if (!selectedAccount) return;
-
 		if (selectedAccount.items.length === 0) {
 			toast.error("Please add items before sending command");
 			return;
 		}
-
 		if (!selectedAccount.waiterId) {
 			toast.error("Please assign a waiter before sending command");
 			return;
 		}
-
 		setSendingCommand(true);
 		try {
 			const response = await posService.sendCommand(selectedAccount.ticketId);
-			toast.success(`Command sent to ${response.stations.join(", ")} (${response.commandsCreated} items)`);
-			// Reload the account to get updated state
+			toast.success(`${response.message} (${response.itemsSent} items sent)`);
 			const updated = await posService.getAccount(selectedAccount.ticketId);
 			setSelectedAccount(updated);
 			setOpenAccounts(openAccounts.map((a) => (a.ticketId === updated.ticketId ? updated : a)));
@@ -198,7 +183,45 @@ export default function POSPage() {
 		}
 	};
 
-	const waiterMap = useMemo(() => new Map(waiters.map((w) => [w.id, w.name])), [waiters]);
+	const handleCheckout = async () => {
+		if (!selectedAccount || !checkoutPaymentTypeId) return;
+		setCheckingOut(true);
+		try {
+			await posService.checkout(selectedAccount.ticketId, {
+				paymentTypeId: Number(checkoutPaymentTypeId),
+			});
+			toast.success(`Payment confirmed — Total: $${selectedAccount.total.toFixed(2)}`);
+			setOpenAccounts(openAccounts.filter((a) => a.ticketId !== selectedAccount.ticketId));
+			setSelectedAccount(null);
+			setIsCheckoutDialogOpen(false);
+			setCheckoutPaymentTypeId("");
+		} catch (error: unknown) {
+			const message = error instanceof Error ? error.message : "Checkout failed";
+			toast.error(message);
+		} finally {
+			setCheckingOut(false);
+		}
+	};
+
+	const handleCancelAccount = async () => {
+		if (!selectedAccount) return;
+		setCancelling(true);
+		try {
+			await posService.cancelAccount(selectedAccount.ticketId);
+			toast.success("Account cancelled");
+			setOpenAccounts(openAccounts.filter((a) => a.ticketId !== selectedAccount.ticketId));
+			setSelectedAccount(null);
+			setIsCancelDialogOpen(false);
+		} catch (error) {
+			toast.error("Failed to cancel account");
+			console.error(error);
+		} finally {
+			setCancelling(false);
+		}
+	};
+
+	const canCheckout =
+		selectedAccount?.status?.toLowerCase() === "open" && selectedAccount.items.length > 0 && !!selectedAccount.waiterId;
 
 	return (
 		<div className="grid grid-cols-3 gap-6 p-6 min-h-screen bg-background">
@@ -227,7 +250,7 @@ export default function POSPage() {
 								>
 									<div className="flex justify-between items-start">
 										<div>
-											<p className="font-semibold">#{account.ticketNumber}</p>
+											<p className="font-semibold">#{account.accountNumber}</p>
 											<p className="text-xs text-muted-foreground">{account.items.length} items</p>
 										</div>
 										<div className="text-right">
@@ -256,10 +279,20 @@ export default function POSPage() {
 							<CardHeader>
 								<div className="flex justify-between items-start">
 									<div>
-										<CardTitle>Account #{selectedAccount.ticketNumber}</CardTitle>
+										<CardTitle>Account #{selectedAccount.accountNumber}</CardTitle>
 										<CardDescription>{new Date(selectedAccount.createdAt).toLocaleString()}</CardDescription>
 									</div>
-									<Badge variant="outline">{selectedAccount.status}</Badge>
+									<div className="flex items-center gap-2">
+										<Badge variant="outline">{selectedAccount.status}</Badge>
+										<Button
+											variant="destructive"
+											size="sm"
+											onClick={() => setIsCancelDialogOpen(true)}
+											disabled={selectedAccount.status?.toLowerCase() !== "open"}
+										>
+											Cancel Account
+										</Button>
+									</div>
 								</div>
 							</CardHeader>
 							<CardContent className="space-y-4">
@@ -306,12 +339,10 @@ export default function POSPage() {
 											{selectedAccount.items.map((item) => (
 												<TableRow key={item.id} className="text-sm">
 													<TableCell className="font-medium">{item.productName}</TableCell>
-													<TableCell className="text-right">{item.qty}</TableCell>
+													<TableCell className="text-right">{item.quantity}</TableCell>
 													<TableCell className="text-right">${item.unitPrice.toFixed(2)}</TableCell>
-													<TableCell className="text-right font-semibold">
-														${(item.qty * item.unitPrice).toFixed(2)}
-													</TableCell>
-													<TableCell className="text-xs max-w-xs truncate">{item.notes || "-"}</TableCell>
+													<TableCell className="text-right font-semibold">${item.lineTotal.toFixed(2)}</TableCell>
+													<TableCell className="text-xs max-w-xs truncate">{item.note || "-"}</TableCell>
 													<TableCell className="text-right space-x-1">
 														<Button
 															variant="ghost"
@@ -319,8 +350,8 @@ export default function POSPage() {
 															onClick={() => {
 																setEditItemForm({
 																	itemId: item.id,
-																	quantity: item.qty,
-																	notes: item.notes || "",
+																	quantity: item.quantity,
+																	notes: item.note || "",
 																});
 																setIsEditItemDialogOpen(true);
 															}}
@@ -344,7 +375,7 @@ export default function POSPage() {
 							</CardContent>
 						</Card>
 
-						{/* Totals */}
+						{/* Totals + Actions */}
 						<Card className="bg-muted/50">
 							<CardContent className="pt-6">
 								<div className="space-y-2">
@@ -362,15 +393,27 @@ export default function POSPage() {
 									</div>
 								</div>
 
-								<Button
-									onClick={handleSendCommand}
-									disabled={sendingCommand || selectedAccount.items.length === 0 || !selectedAccount.waiterId}
-									className="w-full mt-4"
-									size="lg"
-								>
-									<Zap className="mr-2 h-4 w-4" />
-									{sendingCommand ? "Sending..." : "Send Command to Kitchen"}
-								</Button>
+								<div className="flex gap-2 mt-4">
+									<Button
+										onClick={handleSendCommand}
+										disabled={sendingCommand || selectedAccount.items.length === 0 || !selectedAccount.waiterId}
+										className="flex-1"
+										size="lg"
+										variant="outline"
+									>
+										<Zap className="mr-2 h-4 w-4" />
+										{sendingCommand ? "Sending..." : "Send to Kitchen"}
+									</Button>
+
+									<Button
+										onClick={() => setIsCheckoutDialogOpen(true)}
+										disabled={!canCheckout}
+										className="flex-1"
+										size="lg"
+									>
+										Checkout
+									</Button>
+								</div>
 							</CardContent>
 						</Card>
 					</div>
@@ -408,19 +451,15 @@ export default function POSPage() {
 					</DialogHeader>
 					<div className="space-y-4">
 						<div>
-							<Label htmlFor="waiter">Select Waiter *</Label>
-							<Select value={assignWaiterForm.waiterId} onValueChange={(v) => setAssignWaiterForm({ waiterId: v })}>
-								<SelectTrigger id="waiter">
-									<SelectValue placeholder="Choose waiter..." />
-								</SelectTrigger>
-								<SelectContent>
-									{waiters.map((waiter) => (
-										<SelectItem key={waiter.id} value={waiter.id.toString()}>
-											{waiter.name}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
+							<Label htmlFor="waiter">Waiter ID *</Label>
+							<Input
+								id="waiter"
+								type="number"
+								min="1"
+								placeholder="Enter waiter ID..."
+								value={assignWaiterForm.waiterId}
+								onChange={(e) => setAssignWaiterForm({ waiterId: e.target.value })}
+							/>
 						</div>
 						<div className="flex gap-2 justify-end">
 							<Button variant="outline" onClick={() => setIsAssignWaiterDialogOpen(false)}>
@@ -449,19 +488,14 @@ export default function POSPage() {
 							{filteredProducts.map((product) => (
 								<Button
 									key={product.id}
-									onClick={() => {
-										setAddItemForm({
-											...addItemForm,
-											productId: product.id.toString(),
-										});
-									}}
+									onClick={() => setAddItemForm({ ...addItemForm, productId: product.id.toString() })}
 									className={`w-full p-3 text-left border-b hover:bg-muted transition ${
 										addItemForm.productId === product.id.toString() ? "bg-primary/10 border-primary" : ""
 									}`}
 								>
 									<div className="flex justify-between">
 										<span className="font-medium">{product.name}</span>
-										<span className="text-sm text-muted-foreground">product.price</span>
+										<span className="text-sm text-muted-foreground">${product.price.toFixed(2)}</span>
 									</div>
 								</Button>
 							))}
@@ -475,10 +509,7 @@ export default function POSPage() {
 								min="1"
 								value={addItemForm.quantity}
 								onChange={(e) =>
-									setAddItemForm({
-										...addItemForm,
-										quantity: Math.max(1, parseInt(e.target.value) || 1),
-									})
+									setAddItemForm({ ...addItemForm, quantity: Math.max(1, parseInt(e.target.value) || 1) })
 								}
 							/>
 						</div>
@@ -498,11 +529,7 @@ export default function POSPage() {
 								variant="outline"
 								onClick={() => {
 									setIsAddItemDialogOpen(false);
-									setAddItemForm({
-										productId: "",
-										quantity: 1,
-										notes: "",
-									});
+									setAddItemForm({ productId: "", quantity: 1, notes: "" });
 								}}
 							>
 								Cancel
@@ -559,6 +586,82 @@ export default function POSPage() {
 								Save
 							</Button>
 						</div>
+					</div>
+				</DialogContent>
+			</Dialog>
+
+			{/* Dialog: Checkout (HU-19) */}
+			<Dialog open={isCheckoutDialogOpen} onOpenChange={setIsCheckoutDialogOpen}>
+				<DialogContent className="max-w-sm">
+					<DialogHeader>
+						<DialogTitle>Confirm Payment</DialogTitle>
+					</DialogHeader>
+					<div className="space-y-4">
+						<div className="bg-muted rounded p-4 space-y-1 text-sm">
+							<div className="flex justify-between">
+								<span>Subtotal:</span>
+								<span>${selectedAccount?.subtotal.toFixed(2)}</span>
+							</div>
+							<div className="flex justify-between">
+								<span>Tax:</span>
+								<span>${selectedAccount?.tax.toFixed(2)}</span>
+							</div>
+							<div className="flex justify-between font-bold text-base pt-1 border-t">
+								<span>Total:</span>
+								<span>${selectedAccount?.total.toFixed(2)}</span>
+							</div>
+						</div>
+
+						<div>
+							<Label htmlFor="paymentType">Payment Method *</Label>
+							<Select value={checkoutPaymentTypeId} onValueChange={setCheckoutPaymentTypeId}>
+								<SelectTrigger id="paymentType" className="mt-1">
+									<SelectValue placeholder="Select payment method..." />
+								</SelectTrigger>
+								<SelectContent>
+									{paymentTypes.map((pt) => (
+										<SelectItem key={pt.id} value={String(pt.id)}>
+											{pt.name}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
+
+						<div className="flex gap-2 justify-end">
+							<Button
+								variant="outline"
+								onClick={() => {
+									setIsCheckoutDialogOpen(false);
+									setCheckoutPaymentTypeId("");
+								}}
+							>
+								Cancel
+							</Button>
+							<Button onClick={handleCheckout} disabled={!checkoutPaymentTypeId || checkingOut}>
+								{checkingOut ? "Processing..." : "Confirm Payment"}
+							</Button>
+						</div>
+					</div>
+				</DialogContent>
+			</Dialog>
+
+			{/* Dialog: Cancel Account (HU-22) */}
+			<Dialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
+				<DialogContent className="max-w-sm">
+					<DialogHeader>
+						<DialogTitle>Cancel Account</DialogTitle>
+					</DialogHeader>
+					<p className="text-muted-foreground text-sm">
+						Are you sure you want to cancel account #{selectedAccount?.accountNumber}? This action cannot be undone.
+					</p>
+					<div className="flex gap-2 justify-end mt-4">
+						<Button variant="outline" onClick={() => setIsCancelDialogOpen(false)}>
+							Keep Account
+						</Button>
+						<Button variant="destructive" onClick={handleCancelAccount} disabled={cancelling}>
+							{cancelling ? "Cancelling..." : "Yes, Cancel"}
+						</Button>
 					</div>
 				</DialogContent>
 			</Dialog>

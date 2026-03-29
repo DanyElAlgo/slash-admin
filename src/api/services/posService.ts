@@ -1,12 +1,11 @@
-import type { OrderItem, OrderStatus, OrderTicket, PaymentType } from "@/types/entity";
-import apiClient from "../apiClient";
+import { salesApiClient } from "../apiClient";
 
 export interface TaxConfigDto {
 	taxRate: number;
 }
 
 export interface AccountCreateDto {
-	businessId: number;
+	customerId?: number;
 }
 
 export interface WaiterAssignDto {
@@ -16,110 +15,149 @@ export interface WaiterAssignDto {
 export interface AddItemDto {
 	productId: number;
 	quantity: number;
-	notes?: string;
+	note?: string;
 }
 
 export interface UpdateItemDto {
 	quantity?: number;
-	notes?: string;
+	note?: string;
 }
 
-export interface KDSItem {
-	itemId: number;
-	ticketNumber: string;
-	ticketId: number;
+export interface PosOrderItemDto {
+	id: number;
+	productId: number;
 	productName: string;
+	unitPrice: number;
 	quantity: number;
-	notes?: string;
-	createdAt: string;
-	status?: string;
+	note?: string;
+	lineTotal: number;
 }
 
 export interface AccountResponse {
 	ticketId: number;
-	ticketNumber: string;
+	accountNumber: string;
 	status: string;
-	businessId?: number;
 	waiterId?: number;
 	waiterName?: string;
+	taxRate: number;
 	subtotal: number;
 	tax: number;
 	total: number;
-	items: (OrderItem & { notes?: string })[];
 	createdAt: string;
+	items: PosOrderItemDto[];
+}
+
+export interface KDSItem {
+	commandId: number;
+	ticketId: number;
+	orderItemId: number;
+	stationName: string;
+	stationType: string;
+	productName: string;
+	quantity: number;
+	note?: string;
+	status: string;
 }
 
 const posService = {
 	// Tax Configuration
 	getTaxConfig: () =>
-		apiClient.get<{ id: number; taxRate: number; isActive: boolean; createdAt: string }>({
+		salesApiClient.get<{ taxRate: number }>({
 			url: "/pos/tax",
 		}),
 	updateTaxConfig: (data: TaxConfigDto) =>
-		apiClient.put<{ id: number; taxRate: number; isActive: boolean; createdAt: string }>({
+		salesApiClient.put<{ taxRate: number }>({
 			url: "/pos/tax",
 			data,
 		}),
 
 	// Account/Ticket Management
-	createAccount: (data: AccountCreateDto) =>
-		apiClient.post<AccountResponse>({
+	createAccount: (data?: AccountCreateDto) =>
+		salesApiClient.post<AccountResponse>({
 			url: "/pos/accounts",
-			data,
+			data: data ?? {},
 		}),
 	getOpenAccounts: () =>
-		apiClient.get<AccountResponse[]>({
+		salesApiClient.get<AccountResponse[]>({
 			url: "/pos/accounts/open",
 		}),
 	getAccount: (id: number) =>
-		apiClient.get<AccountResponse>({
+		salesApiClient.get<AccountResponse>({
 			url: `/pos/accounts/${id}`,
 		}),
 	assignWaiter: (accountId: number, data: WaiterAssignDto) =>
-		apiClient.post<AccountResponse>({
+		salesApiClient.post<AccountResponse>({
 			url: `/pos/accounts/${accountId}/waiter`,
 			data,
 		}),
 
 	// Items Management
 	addItem: (accountId: number, data: AddItemDto) =>
-		apiClient.post<AccountResponse>({
+		salesApiClient.post<AccountResponse>({
 			url: `/pos/accounts/${accountId}/items`,
 			data,
 		}),
 	updateItem: (accountId: number, itemId: number, data: UpdateItemDto) =>
-		apiClient.patch<AccountResponse>({
+		salesApiClient.patch<AccountResponse>({
 			url: `/pos/accounts/${accountId}/items/${itemId}`,
 			data,
 		}),
 	removeItem: (accountId: number, itemId: number) =>
-		apiClient.delete<AccountResponse>({
+		salesApiClient.delete<AccountResponse>({
 			url: `/pos/accounts/${accountId}/items/${itemId}`,
 		}),
 
 	// Order Management
 	validateCheckout: (accountId: number) =>
-		apiClient.post<{ message: string }>({
+		salesApiClient.post<{ message: string }>({
 			url: `/pos/accounts/${accountId}/validate-checkout`,
 		}),
 	sendCommand: (accountId: number) =>
-		apiClient.post<{
+		salesApiClient.post<{
 			success: boolean;
 			message: string;
-			commandsCreated: number;
-			stations: string[];
+			commandId: number;
+			itemsSent: number;
 		}>({
 			url: `/pos/accounts/${accountId}/send-command`,
 		}),
 
 	// KDS (Kitchen Display System)
-	getKDSPending: (stationType: "Cocina" | "Bar") =>
-		apiClient.get<KDSItem[]>({
+	getKDSPending: (stationType: string) =>
+		salesApiClient.get<KDSItem[]>({
 			url: `/pos/kds/${stationType}/pending`,
 		}),
 
-	// Users/Waiters (for form selection)
-	getWaiters: () => apiClient.get<{ id: number; name: string }[]>({ url: "/users" }),
+	// HU-17: advance KDS item status (Pending → En Preparación → Listo)
+	advanceKdsItemStatus: (orderItemId: number) =>
+		salesApiClient.patch<KDSItem>({
+			url: `/pos/kds/items/${orderItemId}/status`,
+		}),
+
+	// HU-18: get command data for reprinting
+	getCommandReprint: (commandId: number) =>
+		salesApiClient.get<{
+			commandId: number;
+			ticketId: number;
+			waiterName: string;
+			printedAt: string;
+			items: { productName: string; quantity: number; note?: string; stationName: string }[];
+		}>({
+			url: `/pos/commands/${commandId}/reprint`,
+		}),
+
+	// HU-19/20/21: checkout with payment method
+	checkout: (accountId: number, data: { paymentTypeId: number }) =>
+		salesApiClient.post<{ success: boolean; message: string; paymentId?: number; total: number }>({
+			url: `/pos/accounts/${accountId}/checkout`,
+			data,
+		}),
+
+	// HU-22: cancel open account
+	cancelAccount: (accountId: number) =>
+		salesApiClient.delete<AccountResponse>({
+			url: `/pos/accounts/${accountId}`,
+		}),
 };
 
 export default posService;

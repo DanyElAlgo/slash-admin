@@ -31,6 +31,16 @@ export const frontendNavData: NavProps["data"] = [
 		name: "Sales",
 		items: [
 			{
+				title: "POS",
+				path: "/sales/pos",
+				icon: <Icon icon="solar:shop-bold-duotone" size="24" />,
+			},
+			{
+				title: "KDS",
+				path: "/sales/kds",
+				icon: <Icon icon="solar:chef-hat-heart-bold-duotone" size="24" />,
+			},
+			{
 				title: "Orders",
 				path: "/sales/orders",
 				icon: <Icon icon="solar:clipboard-list-bold-duotone" size="24" />,
@@ -44,6 +54,11 @@ export const frontendNavData: NavProps["data"] = [
 				title: "Payments",
 				path: "/sales/payments",
 				icon: <Icon icon="solar:wallet-money-bold-duotone" size="24" />,
+			},
+			{
+				title: "Station Coverage",
+				path: "/sales/station-coverage",
+				icon: <Icon icon="solar:settings-bold-duotone" size="24" />,
 			},
 		],
 	},

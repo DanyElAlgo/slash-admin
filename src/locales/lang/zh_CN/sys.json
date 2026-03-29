@@ -114,9 +114,26 @@
 			"editor": "富文本",
 			"i18n": "多语言",
 			"upload": "上传",
+			"inventory": {
+				"index": "库存",
+				"dashboard": "总览",
+				"categories": "分类",
+				"units": "计量单位",
+				"products": "产品",
+				"stock_management": "库存管理"
+			},
 			"chart": "图表",
 			"toast": "Toast",
 			"functions": "功能",
+			"sales": {
+				"index": "销售",
+				"orders": "订单",
+				"customers": "客户",
+				"payments": "支付",
+				"tax_config": "税率配置",
+				"pos": "收银台",
+				"kds": "后厨屏"
+			},
 			"clipboard": "剪贴板",
 			"token_expired": "Token失效",
 			"menulevel": {

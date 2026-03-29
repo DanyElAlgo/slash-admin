@@ -7,7 +7,7 @@ import type {
 	Warehouse,
 	WarehouseProduct,
 } from "@/types/entity";
-import apiClient from "../apiClient";
+import { inventoryApiClient } from "../apiClient";
 
 export interface ProductCreateDto {
 	name: string;
@@ -43,75 +43,92 @@ export interface StockSetDto {
 	reason: string;
 }
 
-export interface StockChangeDto {
+export interface StockAdjustDto {
 	productId: number;
 	warehouseId: number;
 	quantity: number;
+	actionType: "IN" | "OUT";
 	reason: string;
 }
 
-export interface StockTransferDto {
-	productId: number;
-	sourceWarehouseId: number;
-	destinationWarehouseId: number;
-	quantity: number;
-	reason: string;
+export interface StockOperationResult {
+	success: boolean;
+	message: string;
+	newStock: number;
+	kardexId: number;
 }
 
 const inventoryService = {
-	getProducts: () => apiClient.get<Product[]>({ url: "/products" }),
-	getProduct: (id: number) => apiClient.get<Product>({ url: `/products/${id}` }),
-	createProduct: (data: ProductCreateDto) => apiClient.post<Product>({ url: "/products", data }),
+	getProducts: () => inventoryApiClient.get<Product[]>({ url: "/products" }),
+	getProduct: (id: number) => inventoryApiClient.get<Product>({ url: `/products/${id}` }),
+	createProduct: (data: ProductCreateDto) => inventoryApiClient.post<Product>({ url: "/products", data }),
 	updateProduct: (id: number, data: Partial<ProductCreateDto>) =>
-		apiClient.put<Product>({ url: `/products/${id}`, data }),
-	deleteProduct: (id: number) => apiClient.delete<void>({ url: `/products/${id}` }),
+		inventoryApiClient.put<Product>({ url: `/products/${id}`, data }),
+	deleteProduct: (id: number) => inventoryApiClient.delete<void>({ url: `/products/${id}` }),
 	searchProducts: (data: ProductSearchDto) =>
-		apiClient.post<PaginatedResult<Product & { totalStock: number; lowStockCount: number }>>({
+		inventoryApiClient.post<PaginatedResult<Product & { totalStock: number; lowStockCount: number }>>({
 			url: "/products/search",
 			data,
 		}),
 
-	getCategories: () => apiClient.get<Category[]>({ url: "/categories" }),
-	getCategory: (id: number) => apiClient.get<Category>({ url: `/categories/${id}` }),
+	getCategories: () => inventoryApiClient.get<Category[]>({ url: "/categories" }),
+	getCategory: (id: number) => inventoryApiClient.get<Category>({ url: `/categories/${id}` }),
 	createCategory: (data: { name: string; description?: string }) =>
-		apiClient.post<Category>({ url: "/categories", data }),
+		inventoryApiClient.post<Category>({ url: "/categories", data }),
 	updateCategory: (id: number, data: { name?: string; description?: string }) =>
-		apiClient.put<Category>({ url: `/categories/${id}`, data }),
-	deleteCategory: (id: number) => apiClient.delete<void>({ url: `/categories/${id}` }),
+		inventoryApiClient.put<Category>({ url: `/categories/${id}`, data }),
+	deleteCategory: (id: number) => inventoryApiClient.delete<void>({ url: `/categories/${id}` }),
 
-	getUnits: () => apiClient.get<Unit[]>({ url: "/units" }),
-	getUnit: (id: number) => apiClient.get<Unit>({ url: `/units/${id}` }),
-	createUnit: (data: { name: string; description?: string }) => apiClient.post<Unit>({ url: "/units", data }),
+	getUnits: () => inventoryApiClient.get<Unit[]>({ url: "/units" }),
+	getUnit: (id: number) => inventoryApiClient.get<Unit>({ url: `/units/${id}` }),
+	createUnit: (data: { name: string; description?: string }) => inventoryApiClient.post<Unit>({ url: "/units", data }),
 	updateUnit: (id: number, data: { name?: string; description?: string }) =>
-		apiClient.put<Unit>({ url: `/units/${id}`, data }),
-	deleteUnit: (id: number) => apiClient.delete<void>({ url: `/units/${id}` }),
+		inventoryApiClient.put<Unit>({ url: `/units/${id}`, data }),
+	deleteUnit: (id: number) => inventoryApiClient.delete<void>({ url: `/units/${id}` }),
 
-	getWarehouses: () => apiClient.get<Warehouse[]>({ url: "/warehouses" }),
+	getWarehouses: () => inventoryApiClient.get<Warehouse[]>({ url: "/warehouses" }),
 
-	getWarehouseProducts: () => apiClient.get<WarehouseProduct[]>({ url: "/warehouseproducts" }),
-	getWarehouseProduct: (id: number) => apiClient.get<WarehouseProduct>({ url: `/warehouseproducts/${id}` }),
+	getWarehouseProducts: () => inventoryApiClient.get<WarehouseProduct[]>({ url: "/warehouseproducts" }),
+	getWarehouseProduct: (id: number) => inventoryApiClient.get<WarehouseProduct>({ url: `/warehouseproducts/${id}` }),
 	getProductsInWarehouse: (warehouseId: number) =>
-		apiClient.get<WarehouseProduct[]>({ url: `/warehouseproducts/warehouse/${warehouseId}` }),
+		inventoryApiClient.get<WarehouseProduct[]>({ url: `/warehouseproducts/warehouse/${warehouseId}` }),
 	getWarehousesForProduct: (productId: number) =>
-		apiClient.get<WarehouseProduct[]>({ url: `/warehouseproducts/product/${productId}` }),
-	getLowStockItems: () => apiClient.get<WarehouseProduct[]>({ url: "/warehouseproducts/stock/low" }),
+		inventoryApiClient.get<WarehouseProduct[]>({ url: `/warehouseproducts/product/${productId}` }),
+	getLowStockItems: () => inventoryApiClient.get<WarehouseProduct[]>({ url: "/warehouseproducts/stock/low" }),
 	createWarehouseProduct: (data: WarehouseProductCreateDto) =>
-		apiClient.post<WarehouseProduct>({ url: "/warehouseproducts", data }),
+		inventoryApiClient.post<WarehouseProduct>({ url: "/warehouseproducts", data }),
 	updateWarehouseProduct: (id: number, data: Partial<WarehouseProductCreateDto>) =>
-		apiClient.put<WarehouseProduct>({ url: `/warehouseproducts/${id}`, data }),
-	deleteWarehouseProduct: (id: number) => apiClient.delete<void>({ url: `/warehouseproducts/${id}` }),
+		inventoryApiClient.put<WarehouseProduct>({ url: `/warehouseproducts/${id}`, data }),
+	deleteWarehouseProduct: (id: number) => inventoryApiClient.delete<void>({ url: `/warehouseproducts/${id}` }),
 
-	setStock: (dto: StockSetDto) => apiClient.post<void>({ url: "/stock/set", data: dto }),
-	addStock: (dto: StockChangeDto) => apiClient.post<void>({ url: "/stock/add", data: dto }),
-	subtractStock: (dto: StockChangeDto) => apiClient.post<void>({ url: "/stock/subtract", data: dto }),
-	transferStock: (dto: StockTransferDto) => apiClient.post<void>({ url: "/stock/transfer", data: dto }),
+	// PATCH /api/stock/warehouse/{warehouseId}/product/{productId}/out-of-stock
+	setOutOfStock: (warehouseId: number, productId: number, isOutOfStock: boolean) =>
+		inventoryApiClient.patch<WarehouseProduct>({
+			url: `/stock/warehouse/${warehouseId}/product/${productId}/out-of-stock`,
+			data: { isOutOfStock },
+		}),
+
+	// POST /api/stock/initial — set initial stock for a product-warehouse pair
+	setStock: (dto: StockSetDto) => inventoryApiClient.post<StockOperationResult>({ url: "/stock/initial", data: dto }),
+	// POST /api/stock/adjust — add stock (actionType: "IN")
+	addStock: (dto: Omit<StockAdjustDto, "actionType">) =>
+		inventoryApiClient.post<StockOperationResult>({
+			url: "/stock/adjust",
+			data: { ...dto, actionType: "IN" },
+		}),
+	// POST /api/stock/adjust — subtract stock (actionType: "OUT")
+	subtractStock: (dto: Omit<StockAdjustDto, "actionType">) =>
+		inventoryApiClient.post<StockOperationResult>({
+			url: "/stock/adjust",
+			data: { ...dto, actionType: "OUT" },
+		}),
 
 	getWarehouseHistory: (warehouseId: number) =>
-		apiClient.get<KardexEntry[]>({ url: `/stock/warehouse/${warehouseId}/history` }),
+		inventoryApiClient.get<KardexEntry[]>({ url: `/stock/warehouse/${warehouseId}/history` }),
 	getProductHistory: (productId: number) =>
-		apiClient.get<KardexEntry[]>({ url: `/stock/product/${productId}/history` }),
+		inventoryApiClient.get<KardexEntry[]>({ url: `/stock/product/${productId}/history` }),
 	getProductWarehouseHistory: (productId: number, warehouseId: number) =>
-		apiClient.get<KardexEntry[]>({
+		inventoryApiClient.get<KardexEntry[]>({
 			url: `/stock/product/${productId}/warehouse/${warehouseId}/history`,
 		}),
 };

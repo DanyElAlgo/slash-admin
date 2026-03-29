@@ -24,6 +24,7 @@ export function getFrontendDashboardRoutes(): RouteObject[] {
 				{ path: "tax-config", element: Component("/pages/sales/tax-config") },
 				{ path: "pos", element: Component("/pages/sales/pos") },
 				{ path: "kds", element: Component("/pages/sales/kds") },
+				{ path: "station-coverage", element: Component("/pages/sales/station-coverage") },
 			],
 		},
 		{

@@ -212,6 +212,7 @@ export default function ProductsPage() {
 							<TableHead>Name</TableHead>
 							<TableHead>Category</TableHead>
 							<TableHead>Unit</TableHead>
+							<TableHead className="text-right">Price</TableHead>
 							<TableHead>Status</TableHead>
 							<TableHead className="w-32 text-right">Actions</TableHead>
 						</TableRow>
@@ -231,6 +232,7 @@ export default function ProductsPage() {
 									<TableCell className="font-medium">{product.name}</TableCell>
 									<TableCell>{categoryMap.get(product.categoryId || 0)}</TableCell>
 									<TableCell>{unitMap.get(product.unitId || 0)}</TableCell>
+									<TableCell className="text-right font-medium">${product.price.toFixed(2)}</TableCell>
 									<TableCell>
 										<Badge variant={product.isActive ? "default" : "secondary"}>
 											{product.isActive ? "Active" : "Inactive"}

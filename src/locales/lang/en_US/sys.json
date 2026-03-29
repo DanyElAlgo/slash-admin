@@ -97,10 +97,27 @@
 			"i18n": "Multi Language",
 			"icon": "Icon",
 			"iframe": "Iframe",
+			"inventory": {
+				"index": "Inventory",
+				"dashboard": "Dashboard",
+				"categories": "Categories",
+				"units": "Units",
+				"products": "Products",
+				"stock_management": "Stock Management"
+			},
 			"kanban": "Kanban",
 			"label": "Item Label",
 			"permission": "Permission",
 			"permission.page_test": "Page Permission Test",
+			"sales": {
+				"index": "Sales",
+				"orders": "Orders",
+				"customers": "Customers",
+				"payments": "Payments",
+				"tax_config": "Tax Configuration",
+				"pos": "Point of Sale",
+				"kds": "Kitchen Display"
+			},
 			"management": "Management",
 			"markdown": "Markdown",
 			"menulevel": {
