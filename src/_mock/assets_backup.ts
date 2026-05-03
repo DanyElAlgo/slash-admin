@@ -5,13 +5,11 @@ import { PermissionType } from "#/enum";
 const { GROUP, MENU, CATALOGUE } = PermissionType;
 
 export const DB_MENU: Menu[] = [
-	// group
 	{ id: "group_dashboard", name: "sys.nav.dashboard", code: "dashboard", parentId: "", type: GROUP },
 	{ id: "group_pages", name: "sys.nav.pages", code: "pages", parentId: "", type: GROUP },
 	{ id: "group_ui", name: "sys.nav.ui", code: "ui", parentId: "", type: GROUP },
 	{ id: "group_others", name: "sys.nav.others", code: "others", parentId: "", type: GROUP },
 
-	// group_dashboard
 	{
 		id: "workbench",
 		parentId: "group_dashboard",
@@ -150,8 +148,6 @@ export const DB_MENU: Menu[] = [
 		component: "/pages/sales/kds",
 	},
 
-	// group_pages
-	// management
 	{
 		id: "management",
 		parentId: "group_pages",
@@ -222,7 +218,6 @@ export const DB_MENU: Menu[] = [
 		path: "/management/system/permission",
 		component: "/pages/management/system/permission",
 	},
-	// menulevel
 	{
 		id: "menulevel",
 		parentId: "group_pages",
@@ -285,7 +280,6 @@ export const DB_MENU: Menu[] = [
 		path: "/menu_level/1b/2b/3b",
 		component: "/pages/menu-level/menu-level-1b/menu-level-2b/menu-level-3b",
 	},
-	// erros
 	{
 		id: "error",
 		parentId: "group_pages",
@@ -323,8 +317,6 @@ export const DB_MENU: Menu[] = [
 		component: "/pages/sys/error/Page500",
 	},
 
-	// group_ui
-	// components
 	{
 		id: "components",
 		parentId: "group_ui",
@@ -398,7 +390,6 @@ export const DB_MENU: Menu[] = [
 		path: "/components/toast",
 		component: "/pages/components/toast",
 	},
-	// functions
 	{
 		id: "functions",
 		parentId: "group_ui",
@@ -427,7 +418,6 @@ export const DB_MENU: Menu[] = [
 		component: "/pages/functions/token-expired",
 	},
 
-	// group_others
 	{
 		id: "permission",
 		parentId: "group_others",

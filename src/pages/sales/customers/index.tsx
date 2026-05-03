@@ -99,7 +99,7 @@ export default function CustomersPage() {
 			<Card>
 				<Table>
 					<TableHeader>
-						<TableRow>
+						<TableRow className="grid-cols-4">
 							<TableHead>ID</TableHead>
 							<TableHead>Name</TableHead>
 							<TableHead>Phone</TableHead>
@@ -117,7 +117,7 @@ export default function CustomersPage() {
 							</TableRow>
 						) : (
 							customers.map((customer) => (
-								<TableRow key={customer.id}>
+								<TableRow className="grid-cols-4" key={customer.id}>
 									<TableCell className="text-muted-foreground">#{customer.id}</TableCell>
 									<TableCell className="font-medium">{customer.name}</TableCell>
 									<TableCell>{customer.phone || "—"}</TableCell>

@@ -4,7 +4,7 @@ import inventoryService from "@/api/services/inventoryService";
 import dashboardService from "@/api/services/dashboardService";
 import { useCurrentBusiness } from "@/store/userStore";
 import type { KdsStatusSummary, SalesDashboard, StockAlertsDashboard, TopProduct } from "@/types/entity";
-import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
+import { Card } from "@/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 import { Badge } from "@/ui/badge";
 
@@ -84,24 +84,23 @@ export default function Workbench() {
 				</p>
 			</div>
 
-			{/* HU-23: Ventas del día */}
 			<div>
-				<h2 className="text-lg font-semibold mb-3">Ventas de Hoy</h2>
+				<h2 className="text-lg font-semibold mb-3">Today's Sales</h2>
 				<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
 					<Card className="p-6">
-						<div className="text-sm font-medium text-text-secondary">Total Vendido</div>
+						<div className="text-sm font-medium text-text-secondary">Total Sold</div>
 						<div className="mt-2 text-3xl font-bold text-green-600">
 							{dashLoading ? "..." : `$${(salesDashboard?.totalSoldToday ?? 0).toFixed(2)}`}
 						</div>
 					</Card>
 					<Card className="p-6">
-						<div className="text-sm font-medium text-text-secondary">Tickets Pagados</div>
+						<div className="text-sm font-medium text-text-secondary">Paid Tickets</div>
 						<div className="mt-2 text-3xl font-bold">
 							{dashLoading ? "..." : (salesDashboard?.paidTicketsToday ?? 0)}
 						</div>
 					</Card>
 					<Card className="p-6">
-						<div className="text-sm font-medium text-text-secondary">Ticket Promedio</div>
+						<div className="text-sm font-medium text-text-secondary">Average Ticket</div>
 						<div className="mt-2 text-3xl font-bold">
 							{dashLoading ? "..." : `$${(salesDashboard?.avgTicketToday ?? 0).toFixed(2)}`}
 						</div>
@@ -109,24 +108,23 @@ export default function Workbench() {
 				</div>
 			</div>
 
-			{/* HU-26: Estado KDS */}
 			<div>
-				<h2 className="text-lg font-semibold mb-3">Estado de Comandas (KDS)</h2>
+				<h2 className="text-lg font-semibold mb-3">Order Status (KDS)</h2>
 				<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
 					<Card className="p-6">
-						<div className="text-sm font-medium text-text-secondary">Pendientes</div>
+						<div className="text-sm font-medium text-text-secondary">Pending</div>
 						<div className="mt-2 text-3xl font-bold text-amber-500">
 							{dashLoading ? "..." : (kdsStatus?.pendingCount ?? 0)}
 						</div>
 					</Card>
 					<Card className="p-6">
-						<div className="text-sm font-medium text-text-secondary">En Preparación</div>
+						<div className="text-sm font-medium text-text-secondary">In Preparation</div>
 						<div className="mt-2 text-3xl font-bold text-blue-500">
 							{dashLoading ? "..." : (kdsStatus?.inPreparationCount ?? 0)}
 						</div>
 					</Card>
 					<Card className="p-6">
-						<div className="text-sm font-medium text-text-secondary">Listos</div>
+						<div className="text-sm font-medium text-text-secondary">Ready</div>
 						<div className="mt-2 text-3xl font-bold text-green-500">
 							{dashLoading ? "..." : (kdsStatus?.readyCount ?? 0)}
 						</div>
@@ -134,27 +132,26 @@ export default function Workbench() {
 				</div>
 			</div>
 
-			{/* HU-24: Top productos */}
 			<div>
-				<h2 className="text-lg font-semibold mb-3">Productos Más Vendidos</h2>
+				<h2 className="text-lg font-semibold mb-3">Best-Selling Products</h2>
 				<Card>
 					{dashLoading ? (
 						<div className="p-6 text-muted-foreground">Loading...</div>
 					) : topProducts.length === 0 ? (
-						<div className="p-6 text-muted-foreground text-sm">No hay datos de ventas aún.</div>
+						<div className="p-6 text-muted-foreground text-sm">No sales data yet.</div>
 					) : (
 						<Table>
 							<TableHeader>
-								<TableRow>
+								<TableRow className="grid-cols-4">
 									<TableHead>#</TableHead>
-									<TableHead>Producto</TableHead>
-									<TableHead className="text-right">Cantidad Vendida</TableHead>
-									<TableHead className="text-right">Ingreso Total</TableHead>
+									<TableHead>Product</TableHead>
+									<TableHead className="text-right">Qty Sold</TableHead>
+									<TableHead className="text-right">Total Revenue</TableHead>
 								</TableRow>
 							</TableHeader>
 							<TableBody>
 								{topProducts.map((p, idx) => (
-									<TableRow key={p.productId}>
+									<TableRow className="grid-cols-4" key={p.productId}>
 										<TableCell className="text-muted-foreground">{idx + 1}</TableCell>
 										<TableCell className="font-medium">{p.productName}</TableCell>
 										<TableCell className="text-right">{p.totalQtySold.toFixed(1)}</TableCell>
@@ -167,30 +164,28 @@ export default function Workbench() {
 				</Card>
 			</div>
 
-			{/* HU-25: Alertas de stock */}
 			<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-				{/* Agotados */}
 				<div>
 					<h2 className="text-lg font-semibold mb-3">
-						Productos Agotados <Badge variant="destructive">{stockAlerts?.outOfStock.length ?? 0}</Badge>
+						Out of Stock <Badge variant="destructive">{stockAlerts?.outOfStock.length ?? 0}</Badge>
 					</h2>
 					<Card>
 						{dashLoading ? (
 							<div className="p-6 text-muted-foreground">Loading...</div>
 						) : !stockAlerts?.outOfStock.length ? (
-							<div className="p-6 text-muted-foreground text-sm">No hay productos agotados.</div>
+							<div className="p-6 text-muted-foreground text-sm">No out-of-stock products.</div>
 						) : (
 							<Table>
 								<TableHeader>
-									<TableRow>
-										<TableHead>Producto</TableHead>
-										<TableHead>Almacén</TableHead>
+									<TableRow className="grid-cols-3">
+										<TableHead>Product</TableHead>
+										<TableHead>Warehouse</TableHead>
 										<TableHead className="text-right">Stock</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
 									{stockAlerts.outOfStock.map((item, idx) => (
-										<TableRow key={idx}>
+										<TableRow className="grid-cols-3" key={idx}>
 											<TableCell className="font-medium">{item.productName}</TableCell>
 											<TableCell className="text-muted-foreground">{item.warehouseName}</TableCell>
 											<TableCell className="text-right">
@@ -204,10 +199,9 @@ export default function Workbench() {
 					</Card>
 				</div>
 
-				{/* Stock bajo */}
 				<div>
 					<h2 className="text-lg font-semibold mb-3">
-						Stock Bajo{" "}
+						Low Stock{" "}
 						<Badge variant="outline" className="text-amber-600 border-amber-400">
 							{stockAlerts?.lowStock.length ?? 0}
 						</Badge>
@@ -216,13 +210,13 @@ export default function Workbench() {
 						{dashLoading ? (
 							<div className="p-6 text-muted-foreground">Loading...</div>
 						) : !stockAlerts?.lowStock.length ? (
-							<div className="p-6 text-muted-foreground text-sm">No hay productos con stock bajo.</div>
+							<div className="p-6 text-muted-foreground text-sm">No low-stock products.</div>
 						) : (
 							<Table>
 								<TableHeader>
 									<TableRow>
-										<TableHead>Producto</TableHead>
-										<TableHead>Almacén</TableHead>
+										<TableHead>Product</TableHead>
+										<TableHead>Warehouse</TableHead>
 										<TableHead className="text-right">Stock</TableHead>
 									</TableRow>
 								</TableHeader>
@@ -245,20 +239,19 @@ export default function Workbench() {
 				</div>
 			</div>
 
-			{/* Inventory overview (existing) */}
 			<div>
-				<h2 className="text-lg font-semibold mb-3">Inventario General</h2>
+				<h2 className="text-lg font-semibold mb-3">General Inventory</h2>
 				<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
 					<Card className="p-6">
-						<div className="text-sm font-medium text-text-secondary">Productos</div>
+						<div className="text-sm font-medium text-text-secondary">Products</div>
 						<div className="mt-2 text-3xl font-bold">{productCount}</div>
 					</Card>
 					<Card className="p-6">
-						<div className="text-sm font-medium text-text-secondary">Unidades en Stock</div>
+						<div className="text-sm font-medium text-text-secondary">Units in Stock</div>
 						<div className="mt-2 text-3xl font-bold">{totalStock}</div>
 					</Card>
 					<Card className="p-6">
-						<div className="text-sm font-medium text-text-secondary">Items con Stock Bajo</div>
+						<div className="text-sm font-medium text-text-secondary">Low Stock Items</div>
 						<div className="mt-2 text-3xl font-bold text-warning">{lowStockCount}</div>
 					</Card>
 				</div>

@@ -10,7 +10,6 @@ export const NavRootItem = (item: NavItemProps) => {
 	const { t } = useLocale();
 	const content = (
 		<>
-			{/* Caption */}
 			{item.caption && (
 				<TooltipProvider>
 					<Tooltip>
@@ -22,17 +21,14 @@ export const NavRootItem = (item: NavItemProps) => {
 				</TooltipProvider>
 			)}
 
-			{/* Icon */}
 			<span style={navItemStyles.icon}>
 				{item.icon && typeof item.icon === "string" ? <Icon icon={item.icon} /> : item.icon}
 			</span>
 
-			{/* Arrow */}
 			{item.hasChild && (
 				<Icon icon="eva:arrow-ios-forward-fill" className="absolute right-1 top-2" style={navItemStyles.arrow} />
 			)}
 
-			{/* Title */}
 			<span style={navItemStyles.title} className="text-center! text-xs! mt-1">
 				{t(item.title)}
 			</span>

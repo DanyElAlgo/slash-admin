@@ -18,7 +18,7 @@ export default function PaymentsPage() {
 				<div className="p-6">
 					<Table>
 						<TableHeader>
-							<TableRow>
+							<TableRow className="grid-cols-4">
 								<TableHead>Payment #</TableHead>
 								<TableHead>Order #</TableHead>
 								<TableHead>Type</TableHead>

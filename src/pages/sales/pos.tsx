@@ -1,4 +1,4 @@
-import { Plus, Trash2, Zap } from "lucide-react";
+import { Check, Plus, Trash2, Zap } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import inventoryService from "@/api/services/inventoryService";
@@ -31,7 +31,7 @@ export default function POSPage() {
 	const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
 
 	// Form states
-	const [addItemForm, setAddItemForm] = useState({ productId: "", quantity: 1, notes: "" });
+	const [addItemForm, setAddItemForm] = useState({ productId: "", quantity: "1", notes: "" });
 	const [editItemForm, setEditItemForm] = useState({ itemId: 0, quantity: 1, notes: "" });
 	const [assignWaiterForm, setAssignWaiterForm] = useState({ waiterId: "" });
 	const [checkoutPaymentTypeId, setCheckoutPaymentTypeId] = useState<string>("");
@@ -106,21 +106,22 @@ export default function POSPage() {
 			toast.error("Please select an account");
 			return;
 		}
-		if (!addItemForm.productId || addItemForm.quantity <= 0) {
+		const qty = parseInt(addItemForm.quantity);
+		if (!addItemForm.productId || isNaN(qty) || qty <= 0) {
 			toast.error("Please select a product and quantity");
 			return;
 		}
 		try {
 			const response = await posService.addItem(selectedAccount.ticketId, {
 				productId: Number(addItemForm.productId),
-				quantity: addItemForm.quantity,
+				quantity: qty,
 				note: addItemForm.notes,
 			});
 			setSelectedAccount(response);
 			setOpenAccounts(openAccounts.map((a) => (a.ticketId === response.ticketId ? response : a)));
 			toast.success("Item added successfully");
 			setIsAddItemDialogOpen(false);
-			setAddItemForm({ productId: "", quantity: 1, notes: "" });
+			setAddItemForm({ productId: "", quantity: "1", notes: "" });
 			setSearchProductTerm("");
 		} catch (error) {
 			toast.error("Failed to add item");
@@ -225,7 +226,6 @@ export default function POSPage() {
 
 	return (
 		<div className="grid grid-cols-3 gap-6 p-6 min-h-screen bg-background">
-			{/* Left: Accounts List */}
 			<div className="col-span-1">
 				<Card className="h-full flex flex-col">
 					<CardHeader>
@@ -270,11 +270,9 @@ export default function POSPage() {
 				</Card>
 			</div>
 
-			{/* Middle/Right: Account Details and Items */}
 			<div className="col-span-2">
 				{selectedAccount ? (
 					<div className="space-y-4">
-						{/* Account Header */}
 						<Card>
 							<CardHeader>
 								<div className="flex justify-between items-start">
@@ -315,7 +313,6 @@ export default function POSPage() {
 							</CardContent>
 						</Card>
 
-						{/* Items */}
 						<Card>
 							<CardHeader>
 								<CardTitle>Items</CardTitle>
@@ -326,7 +323,7 @@ export default function POSPage() {
 								) : (
 									<Table>
 										<TableHeader>
-											<TableRow className="text-xs">
+											<TableRow className="text-xs grid-cols-6">
 												<TableHead>Product</TableHead>
 												<TableHead className="text-right">Qty</TableHead>
 												<TableHead className="text-right">Price</TableHead>
@@ -337,7 +334,7 @@ export default function POSPage() {
 										</TableHeader>
 										<TableBody>
 											{selectedAccount.items.map((item) => (
-												<TableRow key={item.id} className="text-sm">
+												<TableRow key={item.id} className="text-sm grid-cols-6">
 													<TableCell className="font-medium">{item.productName}</TableCell>
 													<TableCell className="text-right">{item.quantity}</TableCell>
 													<TableCell className="text-right">${item.unitPrice.toFixed(2)}</TableCell>
@@ -375,7 +372,6 @@ export default function POSPage() {
 							</CardContent>
 						</Card>
 
-						{/* Totals + Actions */}
 						<Card className="bg-muted/50">
 							<CardContent className="pt-6">
 								<div className="space-y-2">
@@ -427,7 +423,6 @@ export default function POSPage() {
 				)}
 			</div>
 
-			{/* Dialog: Create Account */}
 			<Dialog open={isCreateAccountDialogOpen} onOpenChange={setIsCreateAccountDialogOpen}>
 				<DialogContent>
 					<DialogHeader>
@@ -443,7 +438,6 @@ export default function POSPage() {
 				</DialogContent>
 			</Dialog>
 
-			{/* Dialog: Assign Waiter */}
 			<Dialog open={isAssignWaiterDialogOpen} onOpenChange={setIsAssignWaiterDialogOpen}>
 				<DialogContent>
 					<DialogHeader>
@@ -471,7 +465,6 @@ export default function POSPage() {
 				</DialogContent>
 			</Dialog>
 
-			{/* Dialog: Add Item */}
 			<Dialog open={isAddItemDialogOpen} onOpenChange={setIsAddItemDialogOpen}>
 				<DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
 					<DialogHeader>
@@ -484,21 +477,30 @@ export default function POSPage() {
 							onChange={(e) => setSearchProductTerm(e.target.value)}
 						/>
 
-						<div className="border rounded max-h-48 overflow-y-auto">
-							{filteredProducts.map((product) => (
-								<Button
-									key={product.id}
-									onClick={() => setAddItemForm({ ...addItemForm, productId: product.id.toString() })}
-									className={`w-full p-3 text-left border-b hover:bg-muted transition ${
-										addItemForm.productId === product.id.toString() ? "bg-primary/10 border-primary" : ""
-									}`}
-								>
-									<div className="flex justify-between">
-										<span className="font-medium">{product.name}</span>
-										<span className="text-sm text-muted-foreground">${product.price.toFixed(2)}</span>
-									</div>
-								</Button>
-							))}
+						<div className="border rounded max-h-48 overflow-y-auto space-y-1">
+							{filteredProducts.map((product) => {
+								const isSelected = addItemForm.productId === product.id.toString();
+								return (
+									<Button
+										key={product.id}
+										variant="ghost"
+										onClick={() => setAddItemForm({ ...addItemForm, productId: product.id.toString() })}
+										className={`w-full justify-start p-3 text-left border-b rounded-none transition ${
+											isSelected
+												? "bg-primary/10 border-l-2 border-l-primary hover:bg-primary/15"
+												: "hover:bg-secondary/60"
+										}`}
+									>
+										<div className="flex justify-between items-center w-full">
+											<span className="font-medium">{product.name}</span>
+											<div className="flex items-center gap-2">
+												<span className="text-sm text-muted-foreground">${product.price.toFixed(2)}</span>
+												{isSelected && <Check className="h-4 w-4 text-primary shrink-0" />}
+											</div>
+										</div>
+									</Button>
+								);
+							})}
 						</div>
 
 						<div>
@@ -508,9 +510,7 @@ export default function POSPage() {
 								type="number"
 								min="1"
 								value={addItemForm.quantity}
-								onChange={(e) =>
-									setAddItemForm({ ...addItemForm, quantity: Math.max(1, parseInt(e.target.value) || 1) })
-								}
+								onChange={(e) => setAddItemForm({ ...addItemForm, quantity: e.target.value })}
 							/>
 						</div>
 
@@ -529,7 +529,7 @@ export default function POSPage() {
 								variant="outline"
 								onClick={() => {
 									setIsAddItemDialogOpen(false);
-									setAddItemForm({ productId: "", quantity: 1, notes: "" });
+									setAddItemForm({ productId: "", quantity: "1", notes: "" });
 								}}
 							>
 								Cancel
@@ -540,7 +540,6 @@ export default function POSPage() {
 				</DialogContent>
 			</Dialog>
 
-			{/* Dialog: Edit Item */}
 			<Dialog open={isEditItemDialogOpen} onOpenChange={setIsEditItemDialogOpen}>
 				<DialogContent className="max-w-md">
 					<DialogHeader>
@@ -590,7 +589,6 @@ export default function POSPage() {
 				</DialogContent>
 			</Dialog>
 
-			{/* Dialog: Checkout (HU-19) */}
 			<Dialog open={isCheckoutDialogOpen} onOpenChange={setIsCheckoutDialogOpen}>
 				<DialogContent className="max-w-sm">
 					<DialogHeader>
@@ -646,7 +644,6 @@ export default function POSPage() {
 				</DialogContent>
 			</Dialog>
 
-			{/* Dialog: Cancel Account (HU-22) */}
 			<Dialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
 				<DialogContent className="max-w-sm">
 					<DialogHeader>

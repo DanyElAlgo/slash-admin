@@ -379,19 +379,6 @@ export default function InventoryManagePage() {
 							onChange={(event) => handleProductField("price", event.target.value)}
 						/>
 					</div>
-
-					{/* <div className="space-y-2">
-						<Label>Status</Label>
-						<Select value={productForm.statusId} onValueChange={(value) => handleProductField("statusId", value)}>
-							<SelectTrigger className="w-full">
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value={String(STATUS_ON_ID)}>On</SelectItem>
-								<SelectItem value={String(STATUS_OFF_ID)}>Off</SelectItem>
-							</SelectContent>
-						</Select>
-					</div> */}
 				</div>
 
 				<div className="mt-6 flex flex-wrap items-center gap-2">

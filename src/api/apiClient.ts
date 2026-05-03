@@ -23,7 +23,10 @@ function createAxiosInstance(baseURL: string): AxiosInstance {
 
 	instance.interceptors.response.use(
 		(res: AxiosResponse<Result<any> | unknown>) => {
-			if (!res.data) throw new Error(t("sys.api.apiRequestFailed"));
+			if (!res.data) {
+				if (res.status >= 200 && res.status < 300) return;
+				throw new Error(t("sys.api.apiRequestFailed"));
+			}
 
 			if (typeof res.data === "object" && res.data !== null && "status" in res.data && "data" in res.data) {
 				const { status, data, message } = res.data as Result<any>;

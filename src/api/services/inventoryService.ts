@@ -101,22 +101,18 @@ const inventoryService = {
 		inventoryApiClient.put<WarehouseProduct>({ url: `/warehouseproducts/${id}`, data }),
 	deleteWarehouseProduct: (id: number) => inventoryApiClient.delete<void>({ url: `/warehouseproducts/${id}` }),
 
-	// PATCH /api/stock/warehouse/{warehouseId}/product/{productId}/out-of-stock
 	setOutOfStock: (warehouseId: number, productId: number, isOutOfStock: boolean) =>
 		inventoryApiClient.patch<WarehouseProduct>({
 			url: `/stock/warehouse/${warehouseId}/product/${productId}/out-of-stock`,
 			data: { isOutOfStock },
 		}),
 
-	// POST /api/stock/initial — set initial stock for a product-warehouse pair
 	setStock: (dto: StockSetDto) => inventoryApiClient.post<StockOperationResult>({ url: "/stock/initial", data: dto }),
-	// POST /api/stock/adjust — add stock (actionType: "IN")
 	addStock: (dto: Omit<StockAdjustDto, "actionType">) =>
 		inventoryApiClient.post<StockOperationResult>({
 			url: "/stock/adjust",
 			data: { ...dto, actionType: "IN" },
 		}),
-	// POST /api/stock/adjust — subtract stock (actionType: "OUT")
 	subtractStock: (dto: Omit<StockAdjustDto, "actionType">) =>
 		inventoryApiClient.post<StockOperationResult>({
 			url: "/stock/adjust",

@@ -198,7 +198,6 @@ export default function StationCoveragePage() {
 			</div>
 
 			<div className="grid grid-cols-3 gap-6">
-				{/* Left: Station Types list */}
 				<div className="col-span-1 space-y-2">
 					<div className="flex items-center justify-between mb-1">
 						<span className="text-sm font-semibold">Station Types</span>
@@ -241,11 +240,9 @@ export default function StationCoveragePage() {
 					)}
 				</div>
 
-				{/* Right: Type details */}
 				<div className="col-span-2">
 					{selectedType ? (
 						<div className="space-y-6">
-							{/* Stations */}
 							<Card className="p-4">
 								<div className="flex items-center justify-between mb-3">
 									<h3 className="font-semibold">Stations — {selectedType.name}</h3>
@@ -274,7 +271,6 @@ export default function StationCoveragePage() {
 								)}
 							</Card>
 
-							{/* Category Coverage */}
 							<Card className="p-4">
 								<div className="flex items-center justify-between mb-3">
 									<h3 className="font-semibold">Category Coverage</h3>
@@ -330,7 +326,6 @@ export default function StationCoveragePage() {
 				</div>
 			</div>
 
-			{/* Dialog: Add/Edit Station Type */}
 			<Dialog open={isTypeDialogOpen} onOpenChange={setIsTypeDialogOpen}>
 				<DialogContent className="max-w-sm">
 					<DialogHeader>
@@ -343,7 +338,7 @@ export default function StationCoveragePage() {
 								id="typeName"
 								value={typeForm.name}
 								onChange={(e) => setTypeForm({ ...typeForm, name: e.target.value })}
-								placeholder="e.g., Cocina, Bar..."
+								placeholder="e.g., Kitchen, Bar..."
 							/>
 						</div>
 						<div>
@@ -365,7 +360,6 @@ export default function StationCoveragePage() {
 				</DialogContent>
 			</Dialog>
 
-			{/* Dialog: Add Station */}
 			<Dialog open={isStationDialogOpen} onOpenChange={setIsStationDialogOpen}>
 				<DialogContent className="max-w-sm">
 					<DialogHeader>
@@ -378,7 +372,7 @@ export default function StationCoveragePage() {
 								id="stationName"
 								value={stationForm.name}
 								onChange={(e) => setStationForm({ name: e.target.value })}
-								placeholder="e.g., Cocina Principal, Bar 1..."
+								placeholder="e.g., Main Kitchen, Bar 1..."
 							/>
 						</div>
 						<div className="flex gap-2 justify-end">

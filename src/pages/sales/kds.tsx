@@ -2,6 +2,8 @@ import { ChefHat, Printer, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import posService, { type KDSItem } from "@/api/services/posService";
+import stationService from "@/api/services/stationService";
+import type { StationTypeWithDetails } from "@/types/entity";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card";
@@ -16,9 +18,9 @@ function getStatusColor(status: string): string {
 
 function getStatusLabel(status: string): string {
 	const s = status.toLowerCase();
-	if (s.includes("preparac") || s.includes("preparation")) return "En Preparación";
-	if (s.includes("listo") || s.includes("ready")) return "Listo";
-	return "Pendiente";
+	if (s.includes("preparac") || s.includes("preparation")) return "In Preparation";
+	if (s.includes("listo") || s.includes("ready")) return "Ready";
+	return "Pending";
 }
 
 function isInPreparation(status: string): boolean {
@@ -27,7 +29,8 @@ function isInPreparation(status: string): boolean {
 }
 
 export default function KDSPage() {
-	const [stationType, setStationType] = useState<string>("cocina");
+	const [stationTypes, setStationTypes] = useState<StationTypeWithDetails[]>([]);
+	const [stationType, setStationType] = useState<string>("");
 	const [items, setItems] = useState<KDSItem[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [refreshing, setRefreshing] = useState(false);
@@ -44,6 +47,7 @@ export default function KDSPage() {
 	} | null>(null);
 
 	const loadKDSItems = useCallback(async () => {
+		if (!stationType) return;
 		setLoading(true);
 		try {
 			const data = await posService.getKDSPending(stationType);
@@ -55,6 +59,16 @@ export default function KDSPage() {
 			setLoading(false);
 		}
 	}, [stationType]);
+
+	useEffect(() => {
+		stationService
+			.getStationTypes()
+			.then((types) => {
+				setStationTypes(types);
+				if (types.length > 0) setStationType(types[0].name);
+			})
+			.catch(() => toast.error("Failed to load station types"));
+	}, []);
 
 	useEffect(() => {
 		loadKDSItems();
@@ -85,10 +99,10 @@ export default function KDSPage() {
 			const updatedStatus = updated.status?.toLowerCase() ?? "";
 			if (updatedStatus.includes("listo") || updatedStatus.includes("ready")) {
 				setItems((prev) => prev.filter((i) => i.orderItemId !== item.orderItemId));
-				toast.success(`${item.productName} marcado como Listo`);
+				toast.success(`${item.productName} marked as Ready`);
 			} else {
 				setItems((prev) => prev.map((i) => (i.orderItemId === item.orderItemId ? updated : i)));
-				toast.success(`${item.productName} → En Preparación`);
+				toast.success(`${item.productName} → In Preparation`);
 			}
 		} catch (error) {
 			toast.error("Failed to update item status");
@@ -113,20 +127,22 @@ export default function KDSPage() {
 
 	return (
 		<div className="space-y-6 p-6 bg-background min-h-screen">
-			{/* Header */}
 			<div className="flex items-center justify-between">
 				<div>
 					<h1 className="text-3xl font-bold">Kitchen Display System</h1>
 					<p className="text-muted-foreground">Manage and prepare pending orders</p>
 				</div>
 				<div className="flex items-center gap-4">
-					<Select value={stationType} onValueChange={(v) => setStationType(v)}>
-						<SelectTrigger className="w-32">
-							<SelectValue />
+					<Select value={stationType} onValueChange={setStationType} disabled={stationTypes.length === 0}>
+						<SelectTrigger className="w-40">
+							<SelectValue placeholder="Loading..." />
 						</SelectTrigger>
 						<SelectContent>
-							<SelectItem value="cocina">Kitchen</SelectItem>
-							<SelectItem value="bar">Bar</SelectItem>
+							{stationTypes.map((st) => (
+								<SelectItem key={st.id} value={st.name}>
+									{st.name}
+								</SelectItem>
+							))}
 						</SelectContent>
 					</Select>
 
@@ -140,42 +156,40 @@ export default function KDSPage() {
 				</div>
 			</div>
 
-			{/* Status Summary */}
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 				<Card>
 					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-medium">Pendientes</CardTitle>
+						<CardTitle className="text-sm font-medium">Pending</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<div className="text-3xl font-bold text-amber-500">{pendingCount}</div>
-						<p className="text-xs text-muted-foreground">Items por preparar</p>
+						<p className="text-xs text-muted-foreground">Items to prepare</p>
 					</CardContent>
 				</Card>
 
 				<Card>
 					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-medium">En Preparación</CardTitle>
+						<CardTitle className="text-sm font-medium">In Preparation</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<div className="text-3xl font-bold text-blue-500">{inPrepCount}</div>
-						<p className="text-xs text-muted-foreground">Items en proceso</p>
+						<p className="text-xs text-muted-foreground">Items in progress</p>
 					</CardContent>
 				</Card>
 
 				<Card>
 					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-medium">Estación Activa</CardTitle>
+						<CardTitle className="text-sm font-medium">Active Station</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<div className="text-3xl font-bold">{stationType}</div>
 						<p className="text-xs text-muted-foreground">
-							{autoRefresh ? "Auto-refresh cada 5 segundos" : "Actualización manual"}
+							{autoRefresh ? "Auto-refresh every 5 seconds" : "Manual refresh"}
 						</p>
 					</CardContent>
 				</Card>
 			</div>
 
-			{/* Orders Grid */}
 			{loading ? (
 				<div className="flex items-center justify-center py-12">
 					<p className="text-muted-foreground">Loading orders...</p>
@@ -250,24 +264,22 @@ export default function KDSPage() {
 				</div>
 			)}
 
-			{/* Footer */}
 			<div className="text-center text-xs text-muted-foreground py-4 border-t">
 				<p>
 					{autoRefresh ? "Auto-refreshing every 5 seconds" : "Manual refresh enabled"} | Total Items: {items.length}
 				</p>
 			</div>
 
-			{/* Reprint Dialog */}
 			<Dialog open={reprintData !== null} onOpenChange={(open) => !open && setReprintData(null)}>
 				<DialogContent className="max-w-md">
 					<DialogHeader>
-						<DialogTitle>Comanda — Ticket #{reprintData?.ticketId}</DialogTitle>
+						<DialogTitle>Order — Ticket #{reprintData?.ticketId}</DialogTitle>
 					</DialogHeader>
 					{reprintData && (
 						<div className="space-y-4">
 							<div className="text-sm text-muted-foreground">
-								<p>Mesero: {reprintData.waiterName || "—"}</p>
-								<p>Impreso: {new Date(reprintData.printedAt).toLocaleString()}</p>
+								<p>Waiter: {reprintData.waiterName || "—"}</p>
+								<p>Printed: {new Date(reprintData.printedAt).toLocaleString()}</p>
 							</div>
 							<div className="border rounded divide-y">
 								{reprintData.items.map((ri, idx) => (
@@ -277,17 +289,17 @@ export default function KDSPage() {
 											<span>x{ri.quantity}</span>
 										</div>
 										<p className="text-xs text-muted-foreground">{ri.stationName}</p>
-										{ri.note && <p className="text-xs text-yellow-700 mt-1">Nota: {ri.note}</p>}
+										{ri.note && <p className="text-xs text-yellow-700 mt-1">Note: {ri.note}</p>}
 									</div>
 								))}
 							</div>
 							<div className="flex justify-end gap-2">
 								<Button variant="outline" onClick={() => setReprintData(null)}>
-									Cerrar
+									Close
 								</Button>
 								<Button onClick={() => window.print()}>
 									<Printer className="mr-2 h-4 w-4" />
-									Imprimir
+									Print
 								</Button>
 							</div>
 						</div>

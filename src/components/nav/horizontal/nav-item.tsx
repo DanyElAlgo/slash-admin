@@ -11,17 +11,14 @@ export const NavItem = (item: NavItemProps) => {
 
 	const content = (
 		<>
-			{/* Icon */}
 			<span style={navItemStyles.icon} className="items-center justify-center">
 				{item.icon && typeof item.icon === "string" ? <Icon icon={item.icon} /> : item.icon}
 			</span>
 
-			{/* Title */}
 			<span style={navItemStyles.title} className="ml-2 block! flex-auto!">
 				{t(item.title)}
 			</span>
 
-			{/* Caption */}
 			{item.caption && (
 				<TooltipProvider>
 					<Tooltip>
@@ -33,10 +30,8 @@ export const NavItem = (item: NavItemProps) => {
 				</TooltipProvider>
 			)}
 
-			{/* Info */}
 			{item.info && <span style={navItemStyles.info}>{item.info}</span>}
 
-			{/* Arrow */}
 			{item.hasChild && <ItemIcon depth={item.depth} />}
 		</>
 	);

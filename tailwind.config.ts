@@ -10,7 +10,6 @@ export default {
 		fontFamily: createTailwinConfg("typography.fontFamily"),
 		extend: {
 			colors: {
-				// slash admin theme tokens
 				primary: creatColorChannel("colors.palette.primary"),
 				success: creatColorChannel("colors.palette.success"),
 				warning: creatColorChannel("colors.palette.warning"),
@@ -22,7 +21,6 @@ export default {
 				bg: creatColorChannel("colors.background"),
 				action: createTailwinConfg("colors.action"),
 
-				// shadcn ui theme tokens
 				background: "var(--background)",
 				foreground: "var(--foreground)",
 				card: "var(--card)",

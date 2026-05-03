@@ -146,7 +146,7 @@ export default function OrdersPage() {
 			<Card>
 				<Table>
 					<TableHeader>
-						<TableRow>
+						<TableRow className="grid-cols-4">
 							<TableHead>Order #</TableHead>
 							<TableHead>Customer</TableHead>
 							<TableHead>Status</TableHead>
@@ -166,7 +166,7 @@ export default function OrdersPage() {
 							</TableRow>
 						) : (
 							orders.map((order) => (
-								<TableRow key={order.id}>
+								<TableRow className="grid-cols-4" key={order.id}>
 									<TableCell className="font-medium">#{order.id}</TableCell>
 									<TableCell>{order.customerName || customerMap.get(order.customerId) || "—"}</TableCell>
 									<TableCell>{getStatusBadge(order)}</TableCell>
@@ -185,7 +185,6 @@ export default function OrdersPage() {
 				</Table>
 			</Card>
 
-			{/* Dialog: Create Order */}
 			<Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
 				<DialogContent className="max-w-sm">
 					<DialogHeader>
@@ -244,7 +243,6 @@ export default function OrdersPage() {
 				</DialogContent>
 			</Dialog>
 
-			{/* Dialog: Order Details */}
 			<Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
 				<DialogContent className="max-w-lg">
 					<DialogHeader>

@@ -9,10 +9,10 @@ const menuList = http.get("/api/menu", async () => {
 		{
 			message: "",
 			data: menuTree,
-			status: ResultStatus.SUCCESS, // business status
+			status: ResultStatus.SUCCESS,
 		},
 		{
-			status: 200, // http status
+			status: 200,
 		},
 	);
 });

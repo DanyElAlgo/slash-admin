@@ -60,7 +60,6 @@ export interface KDSItem {
 }
 
 const posService = {
-	// Tax Configuration
 	getTaxConfig: () =>
 		salesApiClient.get<{ taxRate: number }>({
 			url: "/pos/tax",
@@ -71,7 +70,6 @@ const posService = {
 			data,
 		}),
 
-	// Account/Ticket Management
 	createAccount: (data?: AccountCreateDto) =>
 		salesApiClient.post<AccountResponse>({
 			url: "/pos/accounts",
@@ -91,7 +89,6 @@ const posService = {
 			data,
 		}),
 
-	// Items Management
 	addItem: (accountId: number, data: AddItemDto) =>
 		salesApiClient.post<AccountResponse>({
 			url: `/pos/accounts/${accountId}/items`,
@@ -107,7 +104,6 @@ const posService = {
 			url: `/pos/accounts/${accountId}/items/${itemId}`,
 		}),
 
-	// Order Management
 	validateCheckout: (accountId: number) =>
 		salesApiClient.post<{ message: string }>({
 			url: `/pos/accounts/${accountId}/validate-checkout`,
@@ -122,19 +118,16 @@ const posService = {
 			url: `/pos/accounts/${accountId}/send-command`,
 		}),
 
-	// KDS (Kitchen Display System)
 	getKDSPending: (stationType: string) =>
 		salesApiClient.get<KDSItem[]>({
 			url: `/pos/kds/${stationType}/pending`,
 		}),
 
-	// HU-17: advance KDS item status (Pending → En Preparación → Listo)
 	advanceKdsItemStatus: (orderItemId: number) =>
 		salesApiClient.patch<KDSItem>({
 			url: `/pos/kds/items/${orderItemId}/status`,
 		}),
 
-	// HU-18: get command data for reprinting
 	getCommandReprint: (commandId: number) =>
 		salesApiClient.get<{
 			commandId: number;
@@ -146,14 +139,12 @@ const posService = {
 			url: `/pos/commands/${commandId}/reprint`,
 		}),
 
-	// HU-19/20/21: checkout with payment method
 	checkout: (accountId: number, data: { paymentTypeId: number }) =>
 		salesApiClient.post<{ success: boolean; message: string; paymentId?: number; total: number }>({
 			url: `/pos/accounts/${accountId}/checkout`,
 			data,
 		}),
 
-	// HU-22: cancel open account
 	cancelAccount: (accountId: number) =>
 		salesApiClient.delete<AccountResponse>({
 			url: `/pos/accounts/${accountId}`,
