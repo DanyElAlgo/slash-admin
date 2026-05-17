@@ -1,57 +1,50 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import posService from "@/api/services/posService";
+import { useCurrentBusiness } from "@/store/userStore";
 import { Button } from "@/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card";
 import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
 
-interface TaxConfig {
-	id: number;
-	taxRate: number;
-	isActive: boolean;
-	createdAt: string;
-}
-
 export default function TaxConfigPage() {
-	const [taxConfig, setTaxConfig] = useState<TaxConfig | null>(null);
+	const business = useCurrentBusiness();
+	const companyCen = business?.companyCen ?? "";
+
 	const [loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);
 	const [taxRate, setTaxRate] = useState("");
 
 	const loadTaxConfig = useCallback(async () => {
+		if (!companyCen) return;
 		setLoading(true);
 		try {
-			const data = await posService.getTaxConfig();
-			setTaxConfig(data);
-			setTaxRate((data.taxRate * 100).toFixed(2));
-		} catch (error) {
+			const data = await posService.getTaxConfig(companyCen);
+			setTaxRate(String(data.globalTaxPercentage));
+		} catch {
 			toast.error("Failed to load tax configuration");
-			console.error(error);
 		} finally {
 			setLoading(false);
 		}
-	}, []);
+	}, [companyCen]);
 
 	useEffect(() => {
 		loadTaxConfig();
 	}, [loadTaxConfig]);
 
 	const handleSave = async () => {
-		if (!taxRate || Number(taxRate) < 0 || Number(taxRate) > 100) {
+		const value = Number(taxRate);
+		if (!taxRate || value < 0 || value > 100) {
 			toast.error("Tax rate must be between 0 and 100");
 			return;
 		}
-
 		setSaving(true);
 		try {
-			const newRate = Number(taxRate) / 100;
-			await posService.updateTaxConfig({ taxRate: newRate });
+			await posService.updateTaxConfig(companyCen, { globalTaxPercentage: value });
 			toast.success("Tax configuration updated successfully");
 			loadTaxConfig();
-		} catch (error) {
+		} catch {
 			toast.error("Failed to save tax configuration");
-			console.error(error);
 		} finally {
 			setSaving(false);
 		}
@@ -75,11 +68,7 @@ export default function TaxConfigPage() {
 			<Card className="max-w-md">
 				<CardHeader>
 					<CardTitle>Global Tax Rate</CardTitle>
-					<CardDescription>
-						{taxConfig
-							? `Last updated: ${new Date(taxConfig.createdAt).toLocaleDateString()}`
-							: "Configure your default tax rate"}
-					</CardDescription>
+					<CardDescription>Configure your default tax rate</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-6">
 					<div className="space-y-2">

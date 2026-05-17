@@ -1,4 +1,12 @@
-import type { Customer, OrderItem, OrderStatus, OrderTicket, Payment, PaymentType } from "@/types/entity";
+import type {
+	Customer,
+	OrderItem,
+	OrderStatus,
+	OrderTicket,
+	Payment,
+	PaymentMethodContractResponse,
+	PaymentType,
+} from "@/types/entity";
 import { salesApiClient } from "../apiClient";
 
 export interface CustomerCreateDto {
@@ -15,7 +23,7 @@ export interface OrderItemCreateDto {
 	qty: number;
 	additionalNote?: string;
 	orderId: number;
-	productId: number;
+	productCen: string;
 	statusId?: number;
 }
 
@@ -35,6 +43,8 @@ const salesService = {
 	getOrderStatuses: () => salesApiClient.get<OrderStatus[]>({ url: "/orderstatuses" }),
 
 	getPaymentTypes: () => salesApiClient.get<PaymentType[]>({ url: "/paymenttypes" }),
+
+	getPaymentMethods: () => salesApiClient.get<PaymentMethodContractResponse[]>({ url: "/sales/payment-methods" }),
 
 	getOrders: () => salesApiClient.get<OrderTicket[]>({ url: "/orders" }),
 	getOrder: (id: number) => salesApiClient.get<OrderTicket>({ url: `/orders/${id}` }),

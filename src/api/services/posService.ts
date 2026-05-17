@@ -1,153 +1,141 @@
 import { salesApiClient } from "../apiClient";
-
-export interface TaxConfigDto {
-	taxRate: number;
-}
-
-export interface AccountCreateDto {
-	customerId?: number;
-}
-
-export interface WaiterAssignDto {
-	waiterId: number;
-}
-
-export interface AddItemDto {
-	productId: number;
-	quantity: number;
-	note?: string;
-}
-
-export interface UpdateItemDto {
-	quantity?: number;
-	note?: string;
-}
-
-export interface PosOrderItemDto {
-	id: number;
-	productId: number;
-	productName: string;
-	unitPrice: number;
-	quantity: number;
-	note?: string;
-	lineTotal: number;
-}
-
-export interface AccountResponse {
-	ticketId: number;
-	accountNumber: string;
-	status: string;
-	waiterId?: number;
-	waiterName?: string;
-	taxRate: number;
-	subtotal: number;
-	tax: number;
-	total: number;
-	createdAt: string;
-	items: PosOrderItemDto[];
-}
-
-export interface KDSItem {
-	commandId: number;
-	ticketId: number;
-	orderItemId: number;
-	stationName: string;
-	stationType: string;
-	productName: string;
-	quantity: number;
-	note?: string;
-	status: string;
-}
+import type {
+	AssignTicketWaiterContractResponse,
+	CancelTicketContractResponse,
+	KdsItemContractResponse,
+	KdsTeamContractResponse,
+	PayTicketContractResponse,
+	ProcessPaymentConflict,
+	TaxConfigurationContractResponse,
+	TicketContractResponse,
+	TicketItemContractResponse,
+	TicketTotalsContractResponse,
+	WaiterContractResponse,
+} from "@/types/entity";
 
 const posService = {
-	getTaxConfig: () =>
-		salesApiClient.get<{ taxRate: number }>({
-			url: "/pos/tax",
+	getTaxConfig: (companyCen: string) =>
+		salesApiClient.get<TaxConfigurationContractResponse>({
+			url: `/sales/companies/${companyCen}/tax-configuration`,
 		}),
-	updateTaxConfig: (data: TaxConfigDto) =>
-		salesApiClient.put<{ taxRate: number }>({
-			url: "/pos/tax",
+
+	updateTaxConfig: (companyCen: string, data: { globalTaxPercentage: number }) =>
+		salesApiClient.put<TaxConfigurationContractResponse>({
+			url: `/sales/companies/${companyCen}/tax-configuration`,
 			data,
 		}),
 
-	createAccount: (data?: AccountCreateDto) =>
-		salesApiClient.post<AccountResponse>({
-			url: "/pos/accounts",
+	getTickets: (companyCen: string) =>
+		salesApiClient.get<TicketContractResponse[]>({
+			url: `/sales/companies/${companyCen}/tickets`,
+		}),
+
+	createTicket: (companyCen: string, data?: { waiterCen?: string }) =>
+		salesApiClient.post<TicketContractResponse>({
+			url: `/sales/companies/${companyCen}/tickets`,
 			data: data ?? {},
 		}),
-	getOpenAccounts: () =>
-		salesApiClient.get<AccountResponse[]>({
-			url: "/pos/accounts/open",
+
+	getTicketItems: (companyCen: string, ticketCen: string) =>
+		salesApiClient.get<TicketItemContractResponse[]>({
+			url: `/sales/companies/${companyCen}/tickets/${ticketCen}/items`,
 		}),
-	getAccount: (id: number) =>
-		salesApiClient.get<AccountResponse>({
-			url: `/pos/accounts/${id}`,
-		}),
-	assignWaiter: (accountId: number, data: WaiterAssignDto) =>
-		salesApiClient.post<AccountResponse>({
-			url: `/pos/accounts/${accountId}/waiter`,
+
+	addTicketItem: (
+		companyCen: string,
+		ticketCen: string,
+		data: { productCen: string; quantity: number; note?: string },
+	) =>
+		salesApiClient.post<TicketItemContractResponse>({
+			url: `/sales/companies/${companyCen}/tickets/${ticketCen}/items`,
 			data,
 		}),
 
-	addItem: (accountId: number, data: AddItemDto) =>
-		salesApiClient.post<AccountResponse>({
-			url: `/pos/accounts/${accountId}/items`,
-			data,
-		}),
-	updateItem: (accountId: number, itemId: number, data: UpdateItemDto) =>
-		salesApiClient.patch<AccountResponse>({
-			url: `/pos/accounts/${accountId}/items/${itemId}`,
-			data,
-		}),
-	removeItem: (accountId: number, itemId: number) =>
-		salesApiClient.delete<AccountResponse>({
-			url: `/pos/accounts/${accountId}/items/${itemId}`,
-		}),
-
-	validateCheckout: (accountId: number) =>
-		salesApiClient.post<{ message: string }>({
-			url: `/pos/accounts/${accountId}/validate-checkout`,
-		}),
-	sendCommand: (accountId: number) =>
-		salesApiClient.post<{
-			success: boolean;
-			message: string;
-			commandId: number;
-			itemsSent: number;
-		}>({
-			url: `/pos/accounts/${accountId}/send-command`,
-		}),
-
-	getKDSPending: (stationType: string) =>
-		salesApiClient.get<KDSItem[]>({
-			url: `/pos/kds/${stationType}/pending`,
-		}),
-
-	advanceKdsItemStatus: (orderItemId: number) =>
-		salesApiClient.patch<KDSItem>({
-			url: `/pos/kds/items/${orderItemId}/status`,
-		}),
-
-	getCommandReprint: (commandId: number) =>
-		salesApiClient.get<{
-			commandId: number;
-			ticketId: number;
-			waiterName: string;
-			printedAt: string;
-			items: { productName: string; quantity: number; note?: string; stationName: string }[];
-		}>({
-			url: `/pos/commands/${commandId}/reprint`,
-		}),
-
-	checkout: (accountId: number, data: { paymentTypeId: number }) =>
-		salesApiClient.post<{ success: boolean; message: string; paymentId?: number; total: number }>({
-			url: `/pos/accounts/${accountId}/checkout`,
+	updateTicketItem: (
+		companyCen: string,
+		ticketCen: string,
+		ticketItemCen: string,
+		data: { quantity?: number; note?: string },
+	) =>
+		salesApiClient.patch<TicketItemContractResponse>({
+			url: `/sales/companies/${companyCen}/tickets/${ticketCen}/items/${ticketItemCen}`,
 			data,
 		}),
 
-	cancelAccount: (accountId: number) =>
-		salesApiClient.delete<AccountResponse>({
-			url: `/pos/accounts/${accountId}`,
+	resendTicketItem: (companyCen: string, ticketCen: string, ticketItemCen: string) =>
+		salesApiClient.post<TicketItemContractResponse>({
+			url: `/sales/companies/${companyCen}/tickets/${ticketCen}/items/${ticketItemCen}/resend`,
+		}),
+
+	sendTicketToKitchen: (companyCen: string, ticketCen: string) =>
+		salesApiClient.post<TicketItemContractResponse[]>({
+			url: `/sales/companies/${companyCen}/tickets/${ticketCen}/send`,
+		}),
+
+	assignWaiter: (companyCen: string, ticketCen: string, waiterCen: string) =>
+		salesApiClient.put<AssignTicketWaiterContractResponse>({
+			url: `/sales/companies/${companyCen}/tickets/${ticketCen}/waiter`,
+			data: { waiterCen },
+		}),
+
+	cancelTicket: (companyCen: string, ticketCen: string, reason?: string) =>
+		salesApiClient.post<CancelTicketContractResponse>({
+			url: `/sales/companies/${companyCen}/tickets/${ticketCen}/cancel`,
+			data: { reason },
+		}),
+
+	printTicket: (companyCen: string, ticketCen: string) =>
+		salesApiClient.request<Blob>({
+			method: "GET",
+			url: `/sales/companies/${companyCen}/tickets/${ticketCen}/print`,
+			responseType: "blob",
+		}),
+
+	getTicketTotals: (companyCen: string, ticketCen: string) =>
+		salesApiClient.get<TicketTotalsContractResponse>({
+			url: `/sales/companies/${companyCen}/tickets/${ticketCen}/totals`,
+		}),
+
+	payTicket: async (
+		companyCen: string,
+		ticketCen: string,
+		paymentMethodCode: string,
+	): Promise<{ success: PayTicketContractResponse | null; conflict: ProcessPaymentConflict | null }> => {
+		const result = await salesApiClient.request<any>({
+			method: "POST",
+			url: `/sales/companies/${companyCen}/tickets/${ticketCen}/payment`,
+			data: { paymentMethodCode },
+			validateStatus: (status: number) => status === 200 || status === 409,
+		});
+		if (result && "saleCen" in result) {
+			return { success: result as PayTicketContractResponse, conflict: null };
+		}
+		return { success: null, conflict: result as ProcessPaymentConflict };
+	},
+
+	getKdsTeams: (companyCen: string) =>
+		salesApiClient.get<KdsTeamContractResponse[]>({
+			url: `/sales/companies/${companyCen}/kds/teams`,
+		}),
+
+	getKdsItemsByTeam: (companyCen: string, teamCen: string) =>
+		salesApiClient.get<KdsItemContractResponse[]>({
+			url: `/sales/companies/${companyCen}/kds/teams/${teamCen}/items`,
+		}),
+
+	updateKdsItemStatus: (
+		companyCen: string,
+		ticketItemCen: string,
+		status: "created" | "preparing" | "delivered" | "canceled",
+	) =>
+		salesApiClient.patch<KdsItemContractResponse>({
+			url: `/sales/companies/${companyCen}/kds/items/${ticketItemCen}/status`,
+			data: { status },
+		}),
+
+	getWaiters: (companyCen: string) =>
+		salesApiClient.get<WaiterContractResponse[]>({
+			url: `/sales/companies/${companyCen}/waiters`,
 		}),
 };
 

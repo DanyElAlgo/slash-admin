@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import inventoryService from "@/api/services/inventoryService";
 import stationService from "@/api/services/stationService";
+import { useCurrentBusiness } from "@/store/userStore";
 import type { Category, Station, StationTypeWithDetails } from "@/types/entity";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
@@ -13,6 +14,7 @@ import { Label } from "@/ui/label";
 import { Textarea } from "@/ui/textarea";
 
 export default function StationCoveragePage() {
+	const business = useCurrentBusiness();
 	const [stationTypes, setStationTypes] = useState<StationTypeWithDetails[]>([]);
 	const [categories, setCategories] = useState<Category[]>([]);
 	const [selectedType, setSelectedType] = useState<StationTypeWithDetails | null>(null);
@@ -33,10 +35,10 @@ export default function StationCoveragePage() {
 	const loadData = useCallback(async () => {
 		setLoading(true);
 		try {
-			const [typesData, catsData] = await Promise.all([
-				stationService.getStationTypes(),
-				inventoryService.getCategories(),
-			]);
+			const categoriesPromise = business?.companyCen
+				? inventoryService.getCategories(business.companyCen)
+				: Promise.resolve([] as Category[]);
+			const [typesData, catsData] = await Promise.all([stationService.getStationTypes(), categoriesPromise]);
 			setStationTypes(typesData);
 			setCategories(catsData);
 			// Refresh selected type if still exists
@@ -50,7 +52,7 @@ export default function StationCoveragePage() {
 		} finally {
 			setLoading(false);
 		}
-	}, []); // eslint-disable-line react-hooks/exhaustive-deps
+	}, [business?.companyCen, selectedType?.id]);
 
 	useEffect(() => {
 		loadData();

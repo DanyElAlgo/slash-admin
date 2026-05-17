@@ -26,10 +26,10 @@
 		"noFallthroughCasesInSwitch": true,
 		"useUnknownInCatchVariables": false,
 
-		"baseUrl": ".",
+		"rootDir": ".",
 		"paths": {
-			"@/*": ["src/*"],
-			"#/*": ["src/types/*"]
+			"@/*": ["./src/*"],
+			"#/*": ["./src/types/*"]
 		}
 	},
 	"include": ["src", "src/types", "tailwind.config.ts"],

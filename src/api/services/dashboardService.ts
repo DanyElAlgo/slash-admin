@@ -1,14 +1,28 @@
-import type { KdsStatusSummary, SalesDashboard, StockAlertsDashboard, TopProduct } from "@/types/entity";
+import type {
+	DailySalesDashboard,
+	KdsStatusDashboard,
+	StockAlertsDashboard,
+	TopProductDashboard,
+} from "@/types/entity";
 import { salesApiClient } from "../apiClient";
 
 const dashboardService = {
-	getSalesDashboard: () => salesApiClient.get<SalesDashboard>({ url: "/dashboard/sales" }),
+	getSalesDashboard: (companyCen: string) =>
+		salesApiClient.get<DailySalesDashboard>({
+			url: `/sales/companies/${companyCen}/dashboard/daily-sales`,
+		}),
 
-	getTopProducts: (limit = 10) => salesApiClient.get<TopProduct[]>({ url: `/dashboard/top-products?limit=${limit}` }),
+	getTopProducts: (companyCen: string, topN = 10) =>
+		salesApiClient.get<TopProductDashboard[]>({
+			url: `/sales/companies/${companyCen}/dashboard/top-products?topN=${topN}`,
+		}),
 
 	getStockAlerts: () => salesApiClient.get<StockAlertsDashboard>({ url: "/dashboard/stock-alerts" }),
 
-	getKdsStatusSummary: () => salesApiClient.get<KdsStatusSummary>({ url: "/dashboard/kds-status" }),
+	getKdsStatusSummary: (companyCen: string) =>
+		salesApiClient.get<KdsStatusDashboard>({
+			url: `/sales/companies/${companyCen}/dashboard/kds-status`,
+		}),
 };
 
 export default dashboardService;

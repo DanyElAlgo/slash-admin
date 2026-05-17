@@ -94,21 +94,40 @@ export type MenuTree = Menu & {
 };
 
 export interface Business {
-	id: number;
+	companyCen: string;
 	name: string;
+	isActive?: boolean;
+}
+
+export interface InventoryDashboard {
+	companyCen: string;
+	totalProducts: number;
+	totalStockQuantity: number;
+	lowStockCount: number;
+	outOfStockCount: number;
+}
+
+export interface InventoryDocument {
+	documentCen: string;
+	documentType: string;
+	status: string;
+	createdAt: string;
+	totalItems: number;
+	generatedMovementCens: string[];
 }
 
 export interface Category {
-	id: number;
+	categoryCen: string;
 	name: string;
-	description: string;
-	productCount?: number;
+	description?: string;
+	isActive?: boolean;
 }
 
 export interface Unit {
-	id: number;
+	unitCen: string;
 	name: string;
-	description: string;
+	abbreviation?: string;
+	isActive?: boolean;
 }
 
 export interface ProductStatus {
@@ -118,51 +137,49 @@ export interface ProductStatus {
 }
 
 export interface Product {
-	id: number;
+	productCen: string;
+	sku: string;
 	name: string;
-	description: string;
-	unitId: number;
-	unitName?: string;
-	unitQty: number;
-	categoryId: number;
+	description?: string;
+	categoryCen: string;
 	categoryName?: string;
-	statusId?: number;
-	statusName?: string;
-	isActive?: boolean;
-	totalStock?: number;
-	lowStockCount?: number;
-	price: number;
-	isOutOfStock: boolean;
+	unitCen: string;
+	unitName?: string;
+	salePrice: number;
+	costPrice?: number;
+	reorderLevel?: number;
+	status: string;
+	stationCode?: string;
 }
 
 export interface Warehouse {
-	id: number;
-	businessId: number;
+	warehouseCen: string;
 	name: string;
+	isActive?: boolean;
 }
 
-export interface WarehouseProduct {
-	id: number;
-	warehouseId: number;
-	warehouseName?: string;
-	productId: number;
-	productName?: string;
-	statusId: number;
-	statusName?: string;
-	stockLeft: number;
-	lowStockQty: number;
-	isLowStock?: boolean;
-	isOutOfStock: boolean;
+export interface StockItem {
+	productCen: string;
+	productName: string;
+	warehouseCen: string;
+	warehouseName: string;
+	availableQuantity: number;
+	reservedQuantity: number;
+	unitName: string;
+	reorderLevel: number;
+	isLowStock: boolean;
 }
 
 export interface KardexEntry {
-	id: number;
-	warehouseId: number;
-	productId: number;
-	actionType: string;
-	actionQty: number;
-	reason: string;
-	timeStamp: string;
+	movementCen: string;
+	documentCen?: string;
+	productCen: string;
+	warehouseCen: string;
+	movementType: string;
+	quantity: number;
+	unitCost?: number;
+	reason?: string;
+	createdAt: string;
 }
 
 export interface Customer {
@@ -197,7 +214,7 @@ export interface OrderItem {
 	qty: number;
 	additionalNote: string;
 	orderId: number;
-	productId: number;
+	productCen: string;
 	unitPrice: number;
 	productName?: string;
 	statusId: number;
@@ -209,7 +226,7 @@ export interface Payment {
 	orderId: number;
 	paymentTypeId: number;
 	paymentTypeName?: string;
-	paidAt: string;
+	paidAt?: string | null;
 }
 
 export interface Waiter {
@@ -279,11 +296,26 @@ export interface SalesDashboard {
 	avgTicketToday: number;
 }
 
+export interface DailySalesDashboard {
+	totalSales: number;
+	ticketsCount: number;
+	averageTicket: number;
+}
+
 export interface TopProduct {
-	productId: number;
+	productCen: string;
 	productName: string;
 	totalQtySold: number;
 	totalRevenue: number;
+}
+
+export interface TopProductDashboard {
+	productCen: string;
+	productName: string;
+	totalQuantity: number;
+	categoryCen?: string;
+	categoryName?: string;
+	salePrice: number;
 }
 
 export interface KdsStatusSummary {
@@ -292,8 +324,14 @@ export interface KdsStatusSummary {
 	readyCount: number;
 }
 
+export interface KdsStatusDashboard {
+	pendingCount: number;
+	preparingCount: number;
+	readyCount: number;
+}
+
 export interface StockAlertEntry {
-	productId: number;
+	productCen: string;
 	productName: string;
 	warehouseName: string;
 	stockLeft: number;
@@ -304,6 +342,121 @@ export interface StockAlertEntry {
 export interface StockAlertsDashboard {
 	outOfStock: StockAlertEntry[];
 	lowStock: StockAlertEntry[];
+}
+
+export interface TicketContractResponse {
+	ticketCen: string;
+	dailyNumber: number;
+	status: string;
+	createdAt: string;
+	waiterCen?: string;
+	companyCen: string;
+	taxAmount: number;
+}
+
+export interface TicketItemContractResponse {
+	ticketItemCen: string;
+	productCen: string;
+	productName: string;
+	quantity: number;
+	unitPrice: number;
+	note?: string;
+	status: string;
+	sentAt?: string;
+	resendCount: number;
+}
+
+export interface AssignTicketWaiterContractResponse {
+	ticketCen: string;
+	waiterCen: string;
+	waiterName: string;
+}
+
+export interface CancelTicketContractResponse {
+	ticketCen: string;
+	status: string;
+}
+
+export interface TicketTotalsContractResponse {
+	ticketCen: string;
+	subtotal: number;
+	taxAmount: number;
+	total: number;
+}
+
+export interface PayTicketContractResponse {
+	saleCen: string;
+	ticketCen: string;
+	status: string;
+	subtotal: number;
+	taxAmount: number;
+	total: number;
+	inventoryDocumentCen?: string;
+}
+
+export interface StockInsufficiencyResponse {
+	productId: number;
+	productCen?: string;
+	productName: string;
+	warehouseCen?: string;
+	requestedQuantity: number;
+	availableQuantity: number;
+	missingQuantity: number;
+}
+
+export interface ProcessPaymentConflict {
+	isSuccess: boolean;
+	saleCen?: string;
+	subtotal: number;
+	taxAmount: number;
+	total: number;
+	message: string;
+	insufficiencies: StockInsufficiencyResponse[];
+}
+
+export interface KdsTeamContractResponse {
+	teamCen: string;
+	name: string;
+	categoryCens: string[];
+}
+
+export interface KdsItemContractResponse {
+	ticketItemCen: string;
+	ticketCen: string;
+	productCen: string;
+	productName: string;
+	quantity: number;
+	status: string;
+	note?: string;
+	resendCount: number;
+	createdAt: string;
+}
+
+export interface PaymentMethodContractResponse {
+	paymentMethodCode: string;
+	name: string;
+	isActive: boolean;
+}
+
+export interface WaiterContractResponse {
+	waiterCen: string;
+	name: string;
+}
+
+export interface TaxConfigurationContractResponse {
+	companyCen: string;
+	globalTaxPercentage: number;
+}
+
+export interface SellableProductContractDto {
+	productCen: string;
+	name: string;
+	categoryCen?: string;
+	categoryName?: string;
+	salePrice: number;
+	availableQuantity: number;
+	isAvailable: boolean;
+	stationCode?: string;
 }
 
 export interface CommandReprintItem {

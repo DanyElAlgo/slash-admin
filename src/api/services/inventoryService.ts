@@ -1,132 +1,194 @@
 import type {
 	Category,
+	Business,
+	InventoryDashboard,
 	KardexEntry,
-	PaginatedResult,
 	Product,
+	StockItem,
 	Unit,
 	Warehouse,
-	WarehouseProduct,
 } from "@/types/entity";
 import { inventoryApiClient } from "../apiClient";
 
 export interface ProductCreateDto {
+	sku: string;
 	name: string;
 	description?: string;
-	unitId?: number;
-	unitQty?: number;
-	categoryId?: number;
-	statusId?: number;
-	isActive?: boolean;
-	price: number;
+	categoryCen: string;
+	unitCen: string;
+	salePrice: number;
+	costPrice?: number;
+	reorderLevel?: number;
+	stationCode?: string;
 }
 
-export interface ProductSearchDto {
-	searchTerm?: string;
-	categoryId?: number;
-	statusId?: number;
-	pageNumber?: number;
-	pageSize?: number;
+export interface ProductQueryDto {
+	search?: string;
+	categoryCen?: string;
+	status?: string;
 }
 
-export interface WarehouseProductCreateDto {
-	warehouseId: number;
-	productId: number;
-	statusId?: number;
-	stockLeft?: number;
-	lowStockQty?: number;
-}
-
-export interface StockSetDto {
-	productId: number;
-	warehouseId: number;
+export interface StockAdjustmentLineDto {
+	productCen: string;
 	quantity: number;
-	reason: string;
+	adjustmentType: "INCREASE" | "DECREASE" | "SET";
 }
 
-export interface StockAdjustDto {
-	productId: number;
-	warehouseId: number;
+export interface StockAdjustmentRequestDto {
+	warehouseCen: string;
+	reason: string;
+	lines: StockAdjustmentLineDto[];
+}
+
+export interface StockAdjustmentResponse {
+	adjustmentCen: string;
+	status: string;
+	generatedMovements: {
+		movementCen: string;
+		productCen: string;
+		warehouseCen: string;
+		quantity: number;
+		movementType: string;
+	}[];
+}
+
+export interface StockValidationRequestDto {
+	warehouseCen: string;
+	source: string;
+	referenceCen?: string;
+	items: { productCen: string; quantity: number }[];
+}
+
+export interface StockValidationResponseDto {
+	isValid: boolean;
+	requirements: {
+		productCen: string;
+		productName: string;
+		warehouseCen: string;
+		requestedQuantity: number;
+		availableQuantity: number;
+		missingQuantity: number;
+		unitName: string;
+		reason: string;
+	}[];
+}
+
+export interface InventoryDocumentCreateDto {
+	documentType: "ENTRY" | "EXIT" | "SALE_EXIT";
+	warehouseCen: string;
+	reason?: string;
+	externalReference?: string;
+	source?: string;
+	referenceCen?: string;
+	lines: { productCen: string; quantity: number; unitCost?: number }[];
+}
+
+export interface InventoryDocumentDto {
+	documentCen: string;
+	documentType: string;
+	status: string;
+	createdAt: string;
+	totalItems: number;
+	generatedMovementCens: string[];
+}
+
+export interface StockConsumeItemDto {
+	productCen: string;
 	quantity: number;
-	actionType: "IN" | "OUT";
-	reason: string;
 }
 
-export interface StockOperationResult {
+export interface StockConsumeRequestDto {
+	warehouseCen: string;
+	source: string;
+	referenceCen: string;
+	reason?: string;
+	items: StockConsumeItemDto[];
+}
+
+export interface StockConsumeResponseDto {
 	success: boolean;
-	message: string;
-	newStock: number;
-	kardexId: number;
+	message?: string;
+	documentCen?: string;
+	documentType?: string;
+	generatedMovementCens: string[];
+	requirements: StockValidationResponseDto["requirements"];
 }
 
 const inventoryService = {
-	getProducts: () => inventoryApiClient.get<Product[]>({ url: "/products" }),
-	getProduct: (id: number) => inventoryApiClient.get<Product>({ url: `/products/${id}` }),
-	createProduct: (data: ProductCreateDto) => inventoryApiClient.post<Product>({ url: "/products", data }),
-	updateProduct: (id: number, data: Partial<ProductCreateDto>) =>
-		inventoryApiClient.put<Product>({ url: `/products/${id}`, data }),
-	deleteProduct: (id: number) => inventoryApiClient.delete<void>({ url: `/products/${id}` }),
-	searchProducts: (data: ProductSearchDto) =>
-		inventoryApiClient.post<PaginatedResult<Product & { totalStock: number; lowStockCount: number }>>({
-			url: "/products/search",
+	getCompanies: () => inventoryApiClient.get<Business[]>({ url: "/inventory/companies" }),
+	getDashboard: (companyCen: string) =>
+		inventoryApiClient.get<InventoryDashboard>({ url: `/inventory/companies/${companyCen}/dashboard` }),
+
+	getProducts: (companyCen: string, query?: ProductQueryDto) =>
+		inventoryApiClient.get<Product[]>({
+			url: `/inventory/companies/${companyCen}/products`,
+			params: query,
+		}),
+	getProduct: (companyCen: string, productCen: string) =>
+		inventoryApiClient.get<Product>({ url: `/inventory/companies/${companyCen}/products/${productCen}` }),
+	createProduct: (companyCen: string, data: ProductCreateDto) =>
+		inventoryApiClient.post<Product>({ url: `/inventory/companies/${companyCen}/products`, data }),
+	updateProduct: (companyCen: string, productCen: string, data: Partial<ProductCreateDto>) =>
+		inventoryApiClient.put<Product>({ url: `/inventory/companies/${companyCen}/products/${productCen}`, data }),
+	updateProductStatus: (companyCen: string, productCen: string, status: string, reason?: string) =>
+		inventoryApiClient.patch<Product>({
+			url: `/inventory/companies/${companyCen}/products/${productCen}/status`,
+			data: { status, reason },
+		}),
+
+	getCategories: (companyCen: string) =>
+		inventoryApiClient.get<Category[]>({ url: `/inventory/companies/${companyCen}/categories` }),
+	createCategory: (companyCen: string, data: { name: string; description?: string }) =>
+		inventoryApiClient.post<Category>({ url: `/inventory/companies/${companyCen}/categories`, data }),
+	updateCategory: (
+		companyCen: string,
+		categoryCen: string,
+		data: { name?: string; description?: string; isActive?: boolean },
+	) => inventoryApiClient.put<Category>({ url: `/inventory/companies/${companyCen}/categories/${categoryCen}`, data }),
+
+	getUnits: (companyCen: string) => inventoryApiClient.get<Unit[]>({ url: `/inventory/companies/${companyCen}/units` }),
+	createUnit: (companyCen: string, data: { name: string; abbreviation?: string }) =>
+		inventoryApiClient.post<Unit>({ url: `/inventory/companies/${companyCen}/units`, data }),
+	updateUnit: (
+		companyCen: string,
+		unitCen: string,
+		data: { name?: string; abbreviation?: string; isActive?: boolean },
+	) => inventoryApiClient.put<Unit>({ url: `/inventory/companies/${companyCen}/units/${unitCen}`, data }),
+
+	getWarehouses: (companyCen: string) =>
+		inventoryApiClient.get<Warehouse[]>({ url: `/inventory/companies/${companyCen}/warehouses` }),
+	createWarehouse: (companyCen: string, data: { name: string }) =>
+		inventoryApiClient.post<Warehouse>({ url: `/inventory/companies/${companyCen}/warehouses`, data }),
+
+	getStock: (companyCen: string, productCen?: string, warehouseCen?: string) =>
+		inventoryApiClient.get<StockItem[]>({
+			url: `/inventory/companies/${companyCen}/stock`,
+			params: { productCen, warehouseCen },
+		}),
+	createAdjustment: (companyCen: string, data: StockAdjustmentRequestDto) =>
+		inventoryApiClient.post<StockAdjustmentResponse>({
+			url: `/inventory/companies/${companyCen}/stock/adjustments`,
 			data,
 		}),
 
-	getCategories: () => inventoryApiClient.get<Category[]>({ url: "/categories" }),
-	getCategory: (id: number) => inventoryApiClient.get<Category>({ url: `/categories/${id}` }),
-	createCategory: (data: { name: string; description?: string }) =>
-		inventoryApiClient.post<Category>({ url: "/categories", data }),
-	updateCategory: (id: number, data: { name?: string; description?: string }) =>
-		inventoryApiClient.put<Category>({ url: `/categories/${id}`, data }),
-	deleteCategory: (id: number) => inventoryApiClient.delete<void>({ url: `/categories/${id}` }),
-
-	getUnits: () => inventoryApiClient.get<Unit[]>({ url: "/units" }),
-	getUnit: (id: number) => inventoryApiClient.get<Unit>({ url: `/units/${id}` }),
-	createUnit: (data: { name: string; description?: string }) => inventoryApiClient.post<Unit>({ url: "/units", data }),
-	updateUnit: (id: number, data: { name?: string; description?: string }) =>
-		inventoryApiClient.put<Unit>({ url: `/units/${id}`, data }),
-	deleteUnit: (id: number) => inventoryApiClient.delete<void>({ url: `/units/${id}` }),
-
-	getWarehouses: () => inventoryApiClient.get<Warehouse[]>({ url: "/warehouses" }),
-
-	getWarehouseProducts: () => inventoryApiClient.get<WarehouseProduct[]>({ url: "/warehouseproducts" }),
-	getWarehouseProduct: (id: number) => inventoryApiClient.get<WarehouseProduct>({ url: `/warehouseproducts/${id}` }),
-	getProductsInWarehouse: (warehouseId: number) =>
-		inventoryApiClient.get<WarehouseProduct[]>({ url: `/warehouseproducts/warehouse/${warehouseId}` }),
-	getWarehousesForProduct: (productId: number) =>
-		inventoryApiClient.get<WarehouseProduct[]>({ url: `/warehouseproducts/product/${productId}` }),
-	getLowStockItems: () => inventoryApiClient.get<WarehouseProduct[]>({ url: "/warehouseproducts/stock/low" }),
-	createWarehouseProduct: (data: WarehouseProductCreateDto) =>
-		inventoryApiClient.post<WarehouseProduct>({ url: "/warehouseproducts", data }),
-	updateWarehouseProduct: (id: number, data: Partial<WarehouseProductCreateDto>) =>
-		inventoryApiClient.put<WarehouseProduct>({ url: `/warehouseproducts/${id}`, data }),
-	deleteWarehouseProduct: (id: number) => inventoryApiClient.delete<void>({ url: `/warehouseproducts/${id}` }),
-
-	setOutOfStock: (warehouseId: number, productId: number, isOutOfStock: boolean) =>
-		inventoryApiClient.patch<WarehouseProduct>({
-			url: `/stock/warehouse/${warehouseId}/product/${productId}/out-of-stock`,
-			data: { isOutOfStock },
-		}),
-
-	setStock: (dto: StockSetDto) => inventoryApiClient.post<StockOperationResult>({ url: "/stock/initial", data: dto }),
-	addStock: (dto: Omit<StockAdjustDto, "actionType">) =>
-		inventoryApiClient.post<StockOperationResult>({
-			url: "/stock/adjust",
-			data: { ...dto, actionType: "IN" },
-		}),
-	subtractStock: (dto: Omit<StockAdjustDto, "actionType">) =>
-		inventoryApiClient.post<StockOperationResult>({
-			url: "/stock/adjust",
-			data: { ...dto, actionType: "OUT" },
-		}),
-
-	getWarehouseHistory: (warehouseId: number) =>
-		inventoryApiClient.get<KardexEntry[]>({ url: `/stock/warehouse/${warehouseId}/history` }),
-	getProductHistory: (productId: number) =>
-		inventoryApiClient.get<KardexEntry[]>({ url: `/stock/product/${productId}/history` }),
-	getProductWarehouseHistory: (productId: number, warehouseId: number) =>
+	getKardex: (companyCen: string, productCen: string, warehouseCen?: string, from?: string, to?: string) =>
 		inventoryApiClient.get<KardexEntry[]>({
-			url: `/stock/product/${productId}/warehouse/${warehouseId}/history`,
+			url: `/inventory/companies/${companyCen}/products/${productCen}/kardex`,
+			params: { warehouseCen, from, to },
 		}),
+
+	createDocument: (companyCen: string, data: InventoryDocumentCreateDto) =>
+		inventoryApiClient.post<InventoryDocumentDto>({ url: `/inventory/companies/${companyCen}/documents`, data }),
+	getDocuments: (companyCen: string, params?: { documentType?: string; from?: string; to?: string }) =>
+		inventoryApiClient.get<InventoryDocumentDto[]>({ url: `/inventory/companies/${companyCen}/documents`, params }),
+
+	validateStock: (companyCen: string, data: StockValidationRequestDto) =>
+		inventoryApiClient.post<StockValidationResponseDto>({
+			url: `/inventory/companies/${companyCen}/stock/validate`,
+			data,
+		}),
+	consumeStock: (companyCen: string, data: StockConsumeRequestDto) =>
+		inventoryApiClient.post<StockConsumeResponseDto>({ url: `/inventory/companies/${companyCen}/stock/consume`, data }),
 };
 
 export default inventoryService;

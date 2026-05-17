@@ -34,11 +34,11 @@ export default function BusinessSelectPage() {
 	const handleSelect = (business: Business) => {
 		setCurrentBusiness(business);
 		setUserToken({
-			accessToken: `mock-token-biz-${business.id}`,
-			refreshToken: `mock-refresh-biz-${business.id}`,
+			accessToken: `mock-token-biz-${business.companyCen}`,
+			refreshToken: `mock-refresh-biz-${business.companyCen}`,
 		});
 		setUserInfo({
-			id: `biz-${business.id}`,
+			id: `biz-${business.companyCen}`,
 			email: `admin@${business.name.toLowerCase().replace(/\s+/g, "")}.com`,
 			username: business.name,
 			roles: [{ id: "1", name: "admin", code: "admin" }],
@@ -68,7 +68,7 @@ export default function BusinessSelectPage() {
 				<div className="grid w-full max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 					{businesses.map((biz) => (
 						<Card
-							key={biz.id}
+							key={biz.companyCen}
 							className="flex cursor-pointer flex-col items-center gap-3 p-8 transition-shadow hover:shadow-lg hover:ring-2 hover:ring-primary"
 							onClick={() => handleSelect(biz)}
 						>

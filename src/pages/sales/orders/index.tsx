@@ -285,7 +285,7 @@ export default function OrdersPage() {
 											<TableBody>
 												{orderItems.map((item) => (
 													<TableRow key={item.id} className="text-sm">
-														<TableCell>{item.productName || `Product #${item.productId}`}</TableCell>
+														<TableCell>{item.productName || item.productCen || "—"}</TableCell>
 														<TableCell className="text-right">{item.qty}</TableCell>
 														<TableCell className="text-right">${item.unitPrice?.toFixed(2) ?? "—"}</TableCell>
 														<TableCell className="text-xs text-muted-foreground">

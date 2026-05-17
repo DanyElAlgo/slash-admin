@@ -1,129 +1,120 @@
-import { ChefHat, Printer, RefreshCw } from "lucide-react";
+import { ChefHat, RefreshCw, RotateCcw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import posService, { type KDSItem } from "@/api/services/posService";
-import stationService from "@/api/services/stationService";
-import type { StationTypeWithDetails } from "@/types/entity";
+import posService from "@/api/services/posService";
+import { useCurrentBusiness } from "@/store/userStore";
+import type { KdsItemContractResponse, KdsTeamContractResponse } from "@/types/entity";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/ui/dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 
 function getStatusColor(status: string): string {
-	const s = status.toLowerCase();
-	if (s.includes("preparac") || s.includes("preparation")) return "border-l-blue-500";
+	if (status === "preparing") return "border-l-blue-500";
+	if (status === "delivered") return "border-l-green-500";
+	if (status === "canceled") return "border-l-red-500";
 	return "border-l-amber-500";
 }
 
 function getStatusLabel(status: string): string {
-	const s = status.toLowerCase();
-	if (s.includes("preparac") || s.includes("preparation")) return "In Preparation";
-	if (s.includes("listo") || s.includes("ready")) return "Ready";
-	return "Pending";
-}
-
-function isInPreparation(status: string): boolean {
-	const s = status.toLowerCase();
-	return s.includes("preparac") || s.includes("preparation");
+	if (status === "preparing") return "Preparando";
+	if (status === "delivered") return "Listo";
+	if (status === "canceled") return "Cancelado";
+	return "Pendiente";
 }
 
 export default function KDSPage() {
-	const [stationTypes, setStationTypes] = useState<StationTypeWithDetails[]>([]);
-	const [stationType, setStationType] = useState<string>("");
-	const [items, setItems] = useState<KDSItem[]>([]);
+	const business = useCurrentBusiness();
+	const companyCen = business?.companyCen ?? "";
+
+	const [teams, setTeams] = useState<KdsTeamContractResponse[]>([]);
+	const [selectedTeamCen, setSelectedTeamCen] = useState<string>("");
+	const [items, setItems] = useState<KdsItemContractResponse[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [refreshing, setRefreshing] = useState(false);
 	const [autoRefresh, setAutoRefresh] = useState(true);
-	const [advancingId, setAdvancingId] = useState<number | null>(null);
+	const [advancingId, setAdvancingId] = useState<string | null>(null);
+	const [resendingId, setResendingId] = useState<string | null>(null);
 
-	// Reprint dialog
-	const [reprintData, setReprintData] = useState<{
-		commandId: number;
-		ticketId: number;
-		waiterName: string;
-		printedAt: string;
-		items: { productName: string; quantity: number; note?: string; stationName: string }[];
-	} | null>(null);
-
-	const loadKDSItems = useCallback(async () => {
-		if (!stationType) return;
+	const loadItems = useCallback(async () => {
+		if (!selectedTeamCen || !companyCen) return;
 		setLoading(true);
 		try {
-			const data = await posService.getKDSPending(stationType);
-			setItems(data);
-		} catch (error) {
-			toast.error(`Failed to load ${stationType} orders`);
-			console.error(error);
+			const data = await posService.getKdsItemsByTeam(companyCen, selectedTeamCen);
+			setItems(data ?? []);
+		} catch {
+			toast.error("Failed to load kitchen orders");
 		} finally {
 			setLoading(false);
 		}
-	}, [stationType]);
+	}, [selectedTeamCen, companyCen]);
 
 	useEffect(() => {
-		stationService
-			.getStationTypes()
-			.then((types) => {
-				setStationTypes(types);
-				if (types.length > 0) setStationType(types[0].name);
+		if (!companyCen) return;
+		posService
+			.getKdsTeams(companyCen)
+			.then((data) => {
+				setTeams(data ?? []);
+				if (data && data.length > 0) setSelectedTeamCen(data[0].teamCen);
 			})
-			.catch(() => toast.error("Failed to load station types"));
-	}, []);
+			.catch(() => toast.error("Failed to load KDS teams"));
+	}, [companyCen]);
 
 	useEffect(() => {
-		loadKDSItems();
-	}, [loadKDSItems]);
+		loadItems();
+	}, [loadItems]);
 
 	useEffect(() => {
 		if (!autoRefresh) return;
-		const interval = setInterval(() => {
-			loadKDSItems();
-		}, 5000);
+		const interval = setInterval(loadItems, 5000);
 		return () => clearInterval(interval);
-	}, [autoRefresh, loadKDSItems]);
+	}, [autoRefresh, loadItems]);
 
 	const handleManualRefresh = async () => {
 		setRefreshing(true);
 		try {
-			await loadKDSItems();
+			await loadItems();
 			toast.success("Orders refreshed");
 		} finally {
 			setRefreshing(false);
 		}
 	};
 
-	const handleAdvanceStatus = async (item: KDSItem) => {
-		setAdvancingId(item.orderItemId);
+	const handleAdvanceStatus = async (item: KdsItemContractResponse) => {
+		const nextStatus = item.status === "created" ? "preparing" : "delivered";
+		setAdvancingId(item.ticketItemCen);
 		try {
-			const updated = await posService.advanceKdsItemStatus(item.orderItemId);
-			const updatedStatus = updated.status?.toLowerCase() ?? "";
-			if (updatedStatus.includes("listo") || updatedStatus.includes("ready")) {
-				setItems((prev) => prev.filter((i) => i.orderItemId !== item.orderItemId));
-				toast.success(`${item.productName} marked as Ready`);
+			const updated = await posService.updateKdsItemStatus(companyCen, item.ticketItemCen, nextStatus);
+			if (updated.status === "delivered") {
+				setItems((prev) => prev.filter((i) => i.ticketItemCen !== item.ticketItemCen));
+				toast.success(`${item.productName} marcado como Listo`);
 			} else {
-				setItems((prev) => prev.map((i) => (i.orderItemId === item.orderItemId ? updated : i)));
-				toast.success(`${item.productName} → In Preparation`);
+				setItems((prev) => prev.map((i) => (i.ticketItemCen === item.ticketItemCen ? updated : i)));
+				toast.success(`${item.productName} → Preparando`);
 			}
-		} catch (error) {
+		} catch {
 			toast.error("Failed to update item status");
-			console.error(error);
 		} finally {
 			setAdvancingId(null);
 		}
 	};
 
-	const handleReprint = async (item: KDSItem) => {
+	const handleResend = async (item: KdsItemContractResponse) => {
+		setResendingId(item.ticketItemCen);
 		try {
-			const data = await posService.getCommandReprint(item.commandId);
-			setReprintData(data);
-		} catch (error) {
-			toast.error("Failed to load command data");
-			console.error(error);
+			await posService.resendTicketItem(companyCen, item.ticketCen, item.ticketItemCen);
+			await loadItems();
+			toast.success(`${item.productName} resent to kitchen`);
+		} catch {
+			toast.error("Failed to resend item");
+		} finally {
+			setResendingId(null);
 		}
 	};
 
-	const pendingCount = items.filter((i) => !isInPreparation(i.status)).length;
-	const inPrepCount = items.filter((i) => isInPreparation(i.status)).length;
+	const activeTeam = teams.find((t) => t.teamCen === selectedTeamCen);
+	const pendingCount = items.filter((i) => i.status === "created").length;
+	const preparingCount = items.filter((i) => i.status === "preparing").length;
 
 	return (
 		<div className="space-y-6 p-6 bg-background min-h-screen">
@@ -133,14 +124,14 @@ export default function KDSPage() {
 					<p className="text-muted-foreground">Manage and prepare pending orders</p>
 				</div>
 				<div className="flex items-center gap-4">
-					<Select value={stationType} onValueChange={setStationType} disabled={stationTypes.length === 0}>
+					<Select value={selectedTeamCen} onValueChange={setSelectedTeamCen} disabled={teams.length === 0}>
 						<SelectTrigger className="w-40">
 							<SelectValue placeholder="Loading..." />
 						</SelectTrigger>
 						<SelectContent>
-							{stationTypes.map((st) => (
-								<SelectItem key={st.id} value={st.name}>
-									{st.name}
+							{teams.map((team) => (
+								<SelectItem key={team.teamCen} value={team.teamCen}>
+									{team.name}
 								</SelectItem>
 							))}
 						</SelectContent>
@@ -172,17 +163,17 @@ export default function KDSPage() {
 						<CardTitle className="text-sm font-medium">In Preparation</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<div className="text-3xl font-bold text-blue-500">{inPrepCount}</div>
+						<div className="text-3xl font-bold text-blue-500">{preparingCount}</div>
 						<p className="text-xs text-muted-foreground">Items in progress</p>
 					</CardContent>
 				</Card>
 
 				<Card>
 					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-medium">Active Station</CardTitle>
+						<CardTitle className="text-sm font-medium">Active Team</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<div className="text-3xl font-bold">{stationType}</div>
+						<div className="text-3xl font-bold">{activeTeam?.name ?? "—"}</div>
 						<p className="text-xs text-muted-foreground">
 							{autoRefresh ? "Auto-refresh every 5 seconds" : "Manual refresh"}
 						</p>
@@ -203,28 +194,32 @@ export default function KDSPage() {
 			) : (
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 					{items.map((item) => (
-						<Card
-							key={`${item.commandId}-${item.orderItemId}`}
-							className={`overflow-hidden border-l-4 ${getStatusColor(item.status)}`}
-						>
+						<Card key={item.ticketItemCen} className={`overflow-hidden border-l-4 ${getStatusColor(item.status)}`}>
 							<CardHeader>
 								<div className="flex items-start justify-between">
 									<div>
-										<CardTitle className="text-lg">Ticket #{item.ticketId}</CardTitle>
-										<CardDescription>{item.stationName}</CardDescription>
+										<CardTitle className="text-lg">Ticket #{item.ticketCen}</CardTitle>
+										<p className="text-xs text-muted-foreground mt-1">
+											{new Date(item.createdAt).toLocaleTimeString()}
+										</p>
 									</div>
 									<div className="flex flex-col items-end gap-1">
 										<Badge variant="outline">{item.quantity}x</Badge>
 										<Badge
 											variant="secondary"
 											className={
-												isInPreparation(item.status)
+												item.status === "preparing"
 													? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
 													: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200"
 											}
 										>
 											{getStatusLabel(item.status)}
 										</Badge>
+										{item.resendCount > 0 && (
+											<Badge variant="destructive" className="text-xs">
+												Resend ×{item.resendCount}
+											</Badge>
+										)}
 									</div>
 								</div>
 							</CardHeader>
@@ -245,17 +240,23 @@ export default function KDSPage() {
 									<Button
 										className="flex-1"
 										size="sm"
-										disabled={advancingId === item.orderItemId}
+										disabled={advancingId === item.ticketItemCen || item.status === "delivered"}
 										onClick={() => handleAdvanceStatus(item)}
 									>
-										{advancingId === item.orderItemId
+										{advancingId === item.ticketItemCen
 											? "..."
-											: isInPreparation(item.status)
+											: item.status === "preparing"
 												? "✓ Mark Ready"
 												: "⚡ Start Preparing"}
 									</Button>
-									<Button variant="outline" size="sm" onClick={() => handleReprint(item)} title="Reprint command">
-										<Printer className="h-4 w-4" />
+									<Button
+										variant="outline"
+										size="sm"
+										disabled={resendingId === item.ticketItemCen}
+										onClick={() => handleResend(item)}
+										title="Resend to kitchen"
+									>
+										<RotateCcw className="h-4 w-4" />
 									</Button>
 								</div>
 							</CardContent>
@@ -269,43 +270,6 @@ export default function KDSPage() {
 					{autoRefresh ? "Auto-refreshing every 5 seconds" : "Manual refresh enabled"} | Total Items: {items.length}
 				</p>
 			</div>
-
-			<Dialog open={reprintData !== null} onOpenChange={(open) => !open && setReprintData(null)}>
-				<DialogContent className="max-w-md">
-					<DialogHeader>
-						<DialogTitle>Order — Ticket #{reprintData?.ticketId}</DialogTitle>
-					</DialogHeader>
-					{reprintData && (
-						<div className="space-y-4">
-							<div className="text-sm text-muted-foreground">
-								<p>Waiter: {reprintData.waiterName || "—"}</p>
-								<p>Printed: {new Date(reprintData.printedAt).toLocaleString()}</p>
-							</div>
-							<div className="border rounded divide-y">
-								{reprintData.items.map((ri, idx) => (
-									<div key={idx} className="p-3">
-										<div className="flex justify-between font-medium">
-											<span>{ri.productName}</span>
-											<span>x{ri.quantity}</span>
-										</div>
-										<p className="text-xs text-muted-foreground">{ri.stationName}</p>
-										{ri.note && <p className="text-xs text-yellow-700 mt-1">Note: {ri.note}</p>}
-									</div>
-								))}
-							</div>
-							<div className="flex justify-end gap-2">
-								<Button variant="outline" onClick={() => setReprintData(null)}>
-									Close
-								</Button>
-								<Button onClick={() => window.print()}>
-									<Printer className="mr-2 h-4 w-4" />
-									Print
-								</Button>
-							</div>
-						</div>
-					)}
-				</DialogContent>
-			</Dialog>
 		</div>
 	);
 }
