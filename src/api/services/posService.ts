@@ -4,6 +4,7 @@ import type {
 	CancelTicketContractResponse,
 	KdsItemContractResponse,
 	KdsTeamContractResponse,
+	PaymentMethodContractResponse,
 	PayTicketContractResponse,
 	ProcessPaymentConflict,
 	TaxConfigurationContractResponse,
@@ -14,6 +15,8 @@ import type {
 } from "@/types/entity";
 
 const posService = {
+	getPaymentMethods: () => salesApiClient.get<PaymentMethodContractResponse[]>({ url: "/sales/payment-methods" }),
+
 	getTaxConfig: (companyCen: string) =>
 		salesApiClient.get<TaxConfigurationContractResponse>({
 			url: `/sales/companies/${companyCen}/tax-configuration`,

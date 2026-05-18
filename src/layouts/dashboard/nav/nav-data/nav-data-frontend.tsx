@@ -41,23 +41,8 @@ export const frontendNavData: NavProps["data"] = [
 				icon: <Icon icon="solar:chef-hat-heart-bold-duotone" size="24" />,
 			},
 			{
-				title: "Orders",
-				path: "/sales/orders",
-				icon: <Icon icon="solar:clipboard-list-bold-duotone" size="24" />,
-			},
-			{
-				title: "Customers",
-				path: "/sales/customers",
-				icon: <Icon icon="solar:users-group-rounded-bold-duotone" size="24" />,
-			},
-			{
-				title: "Payments",
-				path: "/sales/payments",
-				icon: <Icon icon="solar:wallet-money-bold-duotone" size="24" />,
-			},
-			{
-				title: "Station Coverage",
-				path: "/sales/station-coverage",
+				title: "Tax Configuration",
+				path: "/sales/tax-config",
 				icon: <Icon icon="solar:settings-bold-duotone" size="24" />,
 			},
 		],

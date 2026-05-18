@@ -1,9 +1,4 @@
-import type {
-	DailySalesDashboard,
-	KdsStatusDashboard,
-	StockAlertsDashboard,
-	TopProductDashboard,
-} from "@/types/entity";
+import type { DailySalesDashboard, KdsStatusDashboard, TopProductDashboard } from "@/types/entity";
 import { salesApiClient } from "../apiClient";
 
 const dashboardService = {
@@ -14,10 +9,9 @@ const dashboardService = {
 
 	getTopProducts: (companyCen: string, topN = 10) =>
 		salesApiClient.get<TopProductDashboard[]>({
-			url: `/sales/companies/${companyCen}/dashboard/top-products?topN=${topN}`,
+			url: `/sales/companies/${companyCen}/dashboard/top-products`,
+			params: { topN },
 		}),
-
-	getStockAlerts: () => salesApiClient.get<StockAlertsDashboard>({ url: "/dashboard/stock-alerts" }),
 
 	getKdsStatusSummary: (companyCen: string) =>
 		salesApiClient.get<KdsStatusDashboard>({

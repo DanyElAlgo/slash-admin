@@ -53,7 +53,7 @@ export interface CommonOptions {
 	updatedAt?: string;
 }
 export interface User extends CommonOptions {
-	id: string; // uuid
+	id: string;
 	username: string;
 	password: string;
 	email: string;
@@ -62,7 +62,7 @@ export interface User extends CommonOptions {
 }
 
 export interface Role extends CommonOptions {
-	id: string; // uuid
+	id: string;
 	name: string;
 	code: string;
 }
@@ -70,7 +70,7 @@ export interface Role extends CommonOptions {
 export interface Permission extends CommonOptions {
 	id: string;
 	name: string;
-	code: string; // resource:action  example: "user-management:read"
+	code: string;
 }
 
 export interface Menu extends CommonOptions, MenuMetaInfo {
@@ -130,12 +130,6 @@ export interface Unit {
 	isActive?: boolean;
 }
 
-export interface ProductStatus {
-	id: number;
-	name: string;
-	description: string;
-}
-
 export interface Product {
 	productCen: string;
 	sku: string;
@@ -182,91 +176,6 @@ export interface KardexEntry {
 	createdAt: string;
 }
 
-export interface Customer {
-	id: number;
-	name: string;
-	phone: string;
-}
-
-export interface OrderStatus {
-	id: number;
-	name: string;
-	description: string;
-}
-
-export interface PaymentType {
-	id: number;
-	name: string;
-	description: string;
-}
-
-export interface OrderTicket {
-	id: number;
-	customerId: number;
-	customerName?: string;
-	statusId: number;
-	statusName?: string;
-	items?: OrderItem[];
-}
-
-export interface OrderItem {
-	id: number;
-	qty: number;
-	additionalNote: string;
-	orderId: number;
-	productCen: string;
-	unitPrice: number;
-	productName?: string;
-	statusId: number;
-	statusName?: string;
-}
-
-export interface Payment {
-	id: number;
-	orderId: number;
-	paymentTypeId: number;
-	paymentTypeName?: string;
-	paidAt?: string | null;
-}
-
-export interface Waiter {
-	id: number;
-	name: string;
-	phone: string;
-}
-
-export interface StationType {
-	id: number;
-	name: string;
-	description: string;
-}
-
-export interface Station {
-	id: number;
-	name: string;
-	typeId: number;
-	typeName?: string;
-}
-
-export interface OrderCommand {
-	id: number;
-	orderId: number;
-	waiterId: number;
-	waiterName?: string;
-}
-
-export interface CommandItem {
-	id: number;
-	orderItemId: number;
-	commandId: number;
-	stationId: number;
-}
-
-export interface StationCoverage {
-	stationTypeId: number;
-	categoryId: number;
-}
-
 export interface PaginatedResult<T> {
 	items: T[];
 	totalCount: number;
@@ -275,38 +184,10 @@ export interface PaginatedResult<T> {
 	totalPages: number;
 }
 
-export interface StationTypeWithDetails {
-	id: number;
-	name: string;
-	description?: string;
-	categoryIds: number[];
-	stations: Station[];
-}
-
-export interface CheckoutResult {
-	success: boolean;
-	message: string;
-	paymentId?: number;
-	total: number;
-}
-
-export interface SalesDashboard {
-	totalSoldToday: number;
-	paidTicketsToday: number;
-	avgTicketToday: number;
-}
-
 export interface DailySalesDashboard {
 	totalSales: number;
 	ticketsCount: number;
 	averageTicket: number;
-}
-
-export interface TopProduct {
-	productCen: string;
-	productName: string;
-	totalQtySold: number;
-	totalRevenue: number;
 }
 
 export interface TopProductDashboard {
@@ -318,30 +199,10 @@ export interface TopProductDashboard {
 	salePrice: number;
 }
 
-export interface KdsStatusSummary {
-	pendingCount: number;
-	inPreparationCount: number;
-	readyCount: number;
-}
-
 export interface KdsStatusDashboard {
 	pendingCount: number;
 	preparingCount: number;
 	readyCount: number;
-}
-
-export interface StockAlertEntry {
-	productCen: string;
-	productName: string;
-	warehouseName: string;
-	stockLeft: number;
-	lowStockQty: number;
-	isOutOfStock: boolean;
-}
-
-export interface StockAlertsDashboard {
-	outOfStock: StockAlertEntry[];
-	lowStock: StockAlertEntry[];
 }
 
 export interface TicketContractResponse {
@@ -457,19 +318,4 @@ export interface SellableProductContractDto {
 	availableQuantity: number;
 	isAvailable: boolean;
 	stationCode?: string;
-}
-
-export interface CommandReprintItem {
-	productName: string;
-	quantity: number;
-	note?: string;
-	stationName: string;
-}
-
-export interface CommandReprint {
-	commandId: number;
-	ticketId: number;
-	waiterName: string;
-	printedAt: string;
-	items: CommandReprintItem[];
 }

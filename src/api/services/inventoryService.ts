@@ -159,6 +159,11 @@ const inventoryService = {
 		inventoryApiClient.get<Warehouse[]>({ url: `/inventory/companies/${companyCen}/warehouses` }),
 	createWarehouse: (companyCen: string, data: { name: string }) =>
 		inventoryApiClient.post<Warehouse>({ url: `/inventory/companies/${companyCen}/warehouses`, data }),
+	updateWarehouse: (companyCen: string, warehouseCen: string, data: { name?: string; isActive?: boolean }) =>
+		inventoryApiClient.put<Warehouse>({
+			url: `/inventory/companies/${companyCen}/warehouses/${warehouseCen}`,
+			data,
+		}),
 
 	getStock: (companyCen: string, productCen?: string, warehouseCen?: string) =>
 		inventoryApiClient.get<StockItem[]>({

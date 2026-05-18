@@ -1,37 +1,11 @@
-import { AuthGuard } from "@/components/auth/auth-guard";
 import { LineLoading } from "@/components/loading";
-import { GLOBAL_CONFIG } from "@/global-config";
-import Page403 from "@/pages/sys/error/Page403";
 import { useSettings } from "@/store/settingStore";
 import { cn } from "@/utils";
-import { flattenTrees } from "@/utils/tree";
-import { clone, concat } from "ramda";
 import { Suspense } from "react";
-import { Outlet, ScrollRestoration, useLocation } from "react-router";
-import { backendNavData } from "./nav/nav-data/nav-data-backend";
-import { frontendNavData } from "./nav/nav-data/nav-data-frontend";
-
-/**
- * find auth by path
- * @param path
- * @returns
- */
-function findAuthByPath(path: string): string[] {
-	const foundItem = allItems.find((item) => item.path === path);
-	return foundItem?.auth || [];
-}
-
-const navData = GLOBAL_CONFIG.routerMode === "frontend" ? clone(frontendNavData) : backendNavData;
-const allItems = navData.reduce((acc: any[], group) => {
-	const flattenedItems = flattenTrees(group.items);
-	return concat(acc, flattenedItems);
-}, []);
+import { Outlet, ScrollRestoration } from "react-router";
 
 const Main = () => {
 	const { themeStretch } = useSettings();
-
-	const { pathname } = useLocation();
-	const currentNavAuth = findAuthByPath(pathname);
 
 	return (
 		<main

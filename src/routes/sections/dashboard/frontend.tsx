@@ -7,69 +7,13 @@ export function getFrontendDashboardRoutes(): RouteObject[] {
 		{ path: "workbench", element: Component("/pages/dashboard/workbench") },
 		{ path: "stock", element: Component("/pages/dashboard/stock") },
 		{ path: "inventory", element: Component("/pages/inventory") },
-		{ path: "inventory/categories", element: Component("/pages/inventory/categories") },
-		{ path: "inventory/units", element: Component("/pages/inventory/units") },
-		{ path: "inventory/products", element: Component("/pages/inventory/products") },
-		{ path: "inventory/stock-management", element: Component("/pages/inventory/stock-management") },
-		{ path: "inventory/manage", element: Component("/pages/inventory/manage") },
-		{ path: "inventory/manage/:id", element: Component("/pages/inventory/manage") },
-
 		{
 			path: "sales",
 			children: [
-				{ index: true, element: <Navigate to="orders" replace /> },
-				{ path: "orders", element: Component("/pages/sales/orders") },
-				{ path: "customers", element: Component("/pages/sales/customers") },
-				{ path: "payments", element: Component("/pages/sales/payments") },
+				{ index: true, element: <Navigate to="pos" replace /> },
 				{ path: "tax-config", element: Component("/pages/sales/tax-config") },
 				{ path: "pos", element: Component("/pages/sales/pos") },
 				{ path: "kds", element: Component("/pages/sales/kds") },
-				{ path: "station-coverage", element: Component("/pages/sales/station-coverage") },
-			],
-		},
-		{
-			path: "components",
-			children: [
-				{ index: true, element: <Navigate to="animate" replace /> },
-				{ path: "animate", element: Component("/pages/components/animate") },
-				{ path: "scroll", element: Component("/pages/components/scroll") },
-				{ path: "multi-language", element: Component("/pages/components/multi-language") },
-				{ path: "icon", element: Component("/pages/components/icon") },
-				{ path: "upload", element: Component("/pages/components/upload") },
-				{ path: "chart", element: Component("/pages/components/chart") },
-				{ path: "toast", element: Component("/pages/components/toast") },
-			],
-		},
-		{
-			path: "functions",
-			children: [
-				{ index: true, element: <Navigate to="clipboard" replace /> },
-				{ path: "clipboard", element: Component("/pages/functions/clipboard") },
-				{ path: "token_expired", element: Component("/pages/functions/token-expired") },
-			],
-		},
-		{
-			path: "management",
-			children: [
-				{ index: true, element: <Navigate to="user" replace /> },
-				{
-					path: "user",
-					children: [
-						{ index: true, element: <Navigate to="profile" replace /> },
-						{ path: "profile", element: Component("/pages/management/user/profile") },
-						{ path: "account", element: Component("/pages/management/user/account") },
-					],
-				},
-				{
-					path: "system",
-					children: [
-						{ index: true, element: <Navigate to="permission" replace /> },
-						{ path: "permission", element: Component("/pages/management/system/permission") },
-						{ path: "role", element: Component("/pages/management/system/role") },
-						{ path: "user", element: Component("/pages/management/system/user") },
-						{ path: "user/:id", element: Component("/pages/management/system/user/detail") },
-					],
-				},
 			],
 		},
 		{
@@ -81,27 +25,6 @@ export function getFrontendDashboardRoutes(): RouteObject[] {
 				{ path: "500", element: Component("/pages/sys/error/Page500") },
 			],
 		},
-		{
-			path: "link",
-			children: [
-				{ index: true, element: <Navigate to="iframe" replace /> },
-				{ path: "iframe", element: Component("/pages/sys/others/link/iframe", { src: "https://ant.design/index-cn" }) },
-				{
-					path: "external-link",
-					element: Component("/pages/sys/others/link/external-link", { src: "https://ant.design/index-cn" }),
-				},
-			],
-		},
-		{
-			path: "permission",
-			children: [
-				{ index: true, element: Component("/pages/sys/others/permission") },
-				{ path: "page-test", element: Component("/pages/sys/others/permission/page-test") },
-			],
-		},
-		{ path: "calendar", element: Component("/pages/sys/others/calendar") },
-		{ path: "kanban", element: Component("/pages/sys/others/kanban") },
-		{ path: "blank", element: Component("/pages/sys/others/blank") },
 	];
 	return frontendDashboardRoutes;
 }

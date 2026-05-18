@@ -4,7 +4,6 @@ import { toast } from "sonner";
 import BusinessGate from "@/components/business-gate";
 import catalogService from "@/api/services/catalogService";
 import posService from "@/api/services/posService";
-import salesService from "@/api/services/salesService";
 import { useCurrentBusiness } from "@/store/userStore";
 import type {
 	PaymentMethodContractResponse,
@@ -70,7 +69,7 @@ export default function POSPage() {
 			const [ticketsData, productsData, paymentMethodsData, waitersData] = await Promise.all([
 				posService.getTickets(companyCen),
 				catalogService.getProducts(companyCen, { onlyAvailable: true }),
-				salesService.getPaymentMethods(),
+				posService.getPaymentMethods(),
 				posService.getWaiters(companyCen),
 			]);
 			setTickets(ticketsData ?? []);

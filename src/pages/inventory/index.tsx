@@ -127,6 +127,7 @@ export default function InventoryDashboard() {
 
 	const [warehouseDialogOpen, setWarehouseDialogOpen] = useState(false);
 	const [warehouseForm, setWarehouseForm] = useState({ name: "" });
+	const [editingWarehouse, setEditingWarehouse] = useState<Warehouse | null>(null);
 
 	const [adjustmentDialogOpen, setAdjustmentDialogOpen] = useState(false);
 	const [adjustmentForm, setAdjustmentForm] = useState<AdjustmentFormState>(EMPTY_ADJUSTMENT_FORM);
@@ -333,13 +334,34 @@ export default function InventoryDashboard() {
 		}
 
 		try {
-			await inventoryService.createWarehouse(business.companyCen, { name: warehouseForm.name.trim() });
-			toast.success("Warehouse created.");
+			if (editingWarehouse) {
+				await inventoryService.updateWarehouse(business.companyCen, editingWarehouse.warehouseCen, {
+					name: warehouseForm.name.trim(),
+				});
+				toast.success("Warehouse updated.");
+			} else {
+				await inventoryService.createWarehouse(business.companyCen, { name: warehouseForm.name.trim() });
+				toast.success("Warehouse created.");
+			}
 			setWarehouseDialogOpen(false);
 			setWarehouseForm({ name: "" });
+			setEditingWarehouse(null);
 			await loadAll();
 		} catch {
-			toast.error("Failed to create warehouse.");
+			toast.error("Failed to save warehouse.");
+		}
+	};
+
+	const handleToggleWarehouseActive = async (warehouse: Warehouse) => {
+		if (!business?.companyCen) return;
+		try {
+			await inventoryService.updateWarehouse(business.companyCen, warehouse.warehouseCen, {
+				isActive: warehouse.isActive === false,
+			});
+			toast.success("Warehouse status updated.");
+			await loadAll();
+		} catch {
+			toast.error("Failed to update warehouse.");
 		}
 	};
 
@@ -661,7 +683,14 @@ export default function InventoryDashboard() {
 							<Card className="p-6 space-y-4 lg:col-span-2">
 								<div className="flex items-center justify-between">
 									<h2 className="text-xl font-semibold">Warehouses</h2>
-									<Button size="sm" onClick={() => setWarehouseDialogOpen(true)}>
+									<Button
+										size="sm"
+										onClick={() => {
+											setEditingWarehouse(null);
+											setWarehouseForm({ name: "" });
+											setWarehouseDialogOpen(true);
+										}}
+									>
 										<Plus className="mr-2 h-4 w-4" /> New Warehouse
 									</Button>
 								</div>
@@ -670,6 +699,7 @@ export default function InventoryDashboard() {
 										<TableRow>
 											<TableHead>Name</TableHead>
 											<TableHead>Status</TableHead>
+											<TableHead className="text-right">Actions</TableHead>
 										</TableRow>
 									</TableHeader>
 									<TableBody>
@@ -677,6 +707,22 @@ export default function InventoryDashboard() {
 											<TableRow key={warehouse.warehouseCen}>
 												<TableCell className="font-medium">{warehouse.name}</TableCell>
 												<TableCell>{warehouse.isActive === false ? "Inactive" : "Active"}</TableCell>
+												<TableCell className="text-right space-x-2">
+													<Button
+														variant="ghost"
+														size="sm"
+														onClick={() => {
+															setEditingWarehouse(warehouse);
+															setWarehouseForm({ name: warehouse.name });
+															setWarehouseDialogOpen(true);
+														}}
+													>
+														<Pencil className="h-4 w-4" />
+													</Button>
+													<Button variant="outline" size="sm" onClick={() => handleToggleWarehouseActive(warehouse)}>
+														{warehouse.isActive === false ? "Enable" : "Disable"}
+													</Button>
+												</TableCell>
 											</TableRow>
 										))}
 									</TableBody>
@@ -934,10 +980,19 @@ export default function InventoryDashboard() {
 				</DialogContent>
 			</Dialog>
 
-			<Dialog open={warehouseDialogOpen} onOpenChange={setWarehouseDialogOpen}>
+			<Dialog
+				open={warehouseDialogOpen}
+				onOpenChange={(open) => {
+					setWarehouseDialogOpen(open);
+					if (!open) {
+						setEditingWarehouse(null);
+						setWarehouseForm({ name: "" });
+					}
+				}}
+			>
 				<DialogContent>
 					<DialogHeader>
-						<DialogTitle>New Warehouse</DialogTitle>
+						<DialogTitle>{editingWarehouse ? "Edit Warehouse" : "New Warehouse"}</DialogTitle>
 					</DialogHeader>
 					<div className="space-y-3">
 						<div>
@@ -1151,31 +1206,33 @@ export default function InventoryDashboard() {
 						<Table>
 							<TableHeader>
 								<TableRow>
-									<TableHead>Movement</TableHead>
 									<TableHead>Type</TableHead>
 									<TableHead className="text-right">Quantity</TableHead>
 									<TableHead>Warehouse</TableHead>
+									<TableHead>Reason</TableHead>
+									<TableHead>Document</TableHead>
 									<TableHead>Created</TableHead>
 								</TableRow>
 							</TableHeader>
 							<TableBody>
 								{kardexLoading ? (
 									<TableRow>
-										<TableCell className="col-span-5 text-center py-6">Loading...</TableCell>
+										<TableCell className="col-span-6 text-center py-6">Loading...</TableCell>
 									</TableRow>
 								) : kardexEntries.length === 0 ? (
 									<TableRow>
-										<TableCell className="col-span-5 text-center py-6 text-muted-foreground">
+										<TableCell className="col-span-6 text-center py-6 text-muted-foreground">
 											No movements yet.
 										</TableCell>
 									</TableRow>
 								) : (
 									kardexEntries.map((entry) => (
 										<TableRow key={entry.movementCen}>
-											<TableCell className="text-xs text-muted-foreground">{entry.movementCen}</TableCell>
 											<TableCell>{entry.movementType}</TableCell>
 											<TableCell className="text-right">{entry.quantity}</TableCell>
 											<TableCell className="text-xs">{entry.warehouseCen}</TableCell>
+											<TableCell className="text-xs">{entry.reason || "—"}</TableCell>
+											<TableCell className="text-xs text-muted-foreground">{entry.documentCen || "—"}</TableCell>
 											<TableCell className="text-xs text-muted-foreground">{entry.createdAt}</TableCell>
 										</TableRow>
 									))

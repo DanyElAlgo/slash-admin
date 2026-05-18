@@ -26,7 +26,7 @@ export default function LoginAuthGuard({ children }: Props) {
 					refreshToken: "dev-mock-refresh",
 				});
 				setUserInfo(mockUser);
-				setCurrentBusiness({ id: 1, name: "Dev Business" });
+				setCurrentBusiness({ companyCen: "BUS-000002", name: "Dev Business", isActive: true });
 			} else {
 				router.replace("/auth/select-business");
 			}
