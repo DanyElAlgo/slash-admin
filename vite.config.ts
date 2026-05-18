@@ -14,6 +14,7 @@ export default defineConfig(({ mode }) => {
 	const apiProxyTarget = env.VITE_API_PROXY_TARGET || "http://localhost:5000";
 	const inventoryProxyTarget = env.VITE_INVENTORY_PROXY_TARGET || "http://localhost:5001";
 	const salesProxyTarget = env.VITE_SALES_PROXY_TARGET || "http://localhost:5002";
+	const purchasesProxyTarget = env.VITE_PURCHASES_PROXY_TARGET || "http://localhost:5003";
 
 	return {
 		base,
@@ -55,6 +56,12 @@ export default defineConfig(({ mode }) => {
 					changeOrigin: true,
 					secure: false,
 					rewrite: (path) => path.replace(/^\/sales-api/, "/api"),
+				},
+				"/purchases-api": {
+					target: purchasesProxyTarget,
+					changeOrigin: true,
+					secure: false,
+					rewrite: (path) => path.replace(/^\/purchases-api/, "/api"),
 				},
 			},
 		},

@@ -18,6 +18,8 @@ export type GlobalConfig = {
 	inventoryApiUrl: string;
 	/** Base URL for the Sales API (proxied through `/sales-api` during dev) */
 	salesApiUrl: string;
+	/** Base URL for the Purchases API (proxied through `/purchases-api` during dev) */
+	purchasesApiUrl: string;
 	/** Routing mode: frontend routing or backend routing */
 	routerMode: "frontend" | "backend";
 };
@@ -37,5 +39,6 @@ export const GLOBAL_CONFIG: GlobalConfig = {
 	apiBaseUrl: import.meta.env.VITE_APP_API_BASE_URL || "/api",
 	inventoryApiUrl: import.meta.env.VITE_APP_INVENTORY_API_URL || "/inventory-api",
 	salesApiUrl: import.meta.env.VITE_APP_SALES_API_URL || "/sales-api",
+	purchasesApiUrl: import.meta.env.VITE_APP_PURCHASES_API_URL || "/purchases-api",
 	routerMode: import.meta.env.VITE_APP_ROUTER_MODE || "frontend",
 };

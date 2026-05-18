@@ -319,3 +319,98 @@ export interface SellableProductContractDto {
 	isAvailable: boolean;
 	stationCode?: string;
 }
+
+// =============================================================================
+// Purchases module
+// =============================================================================
+
+export enum PurchaseStatus {
+	Pending = 0,
+	Confirmed = 1,
+	Cancelled = 2,
+}
+
+export interface PagedResultDto<T> {
+	items: T[];
+	totalCount: number;
+	totalPages: number;
+	currentPage: number;
+}
+
+export interface PurchaseOrderListItem {
+	orderCen: string;
+	status: PurchaseStatus;
+	createdAt: string;
+	confirmedAt?: string | null;
+	supplierCen: string;
+	itemCount: number;
+}
+
+export interface PurchaseOrderDetailItem {
+	productCen: string;
+	quantity: number;
+}
+
+export interface PurchaseOrderDetail {
+	orderCen: string;
+	status: PurchaseStatus;
+	createdAt: string;
+	confirmedAt?: string | null;
+	supplierCen: string;
+	warehouseCen: string;
+	items: PurchaseOrderDetailItem[];
+}
+
+export interface PurchaseOrderSummary {
+	orderCen: string;
+	status: PurchaseStatus;
+}
+
+export interface PurchaseOrderConfirmation {
+	orderCen: string;
+	status: PurchaseStatus;
+	confirmedAt: string;
+}
+
+export interface PurchaseOrderCancellation {
+	orderCen: string;
+	status: PurchaseStatus;
+	cancelledAt: string;
+}
+
+export interface CreatePurchaseOrderItem {
+	productCen: string;
+	quantity: number;
+}
+
+export interface CreatePurchaseOrderRequest {
+	supplierCen: string;
+	warehouseCen: string;
+	items: CreatePurchaseOrderItem[];
+}
+
+export interface Supplier {
+	supplierCen: string;
+	name: string;
+}
+
+export interface SupplierDetail {
+	supplierCen: string;
+	name: string;
+	contactEmail?: string;
+	contactPhone?: string;
+	isActive: boolean;
+}
+
+export interface CreateSupplierRequest {
+	name: string;
+	contactEmail?: string;
+	contactPhone?: string;
+}
+
+export interface UpdateSupplierRequest {
+	name: string;
+	contactEmail?: string;
+	contactPhone?: string;
+	isActive: boolean;
+}

@@ -47,4 +47,19 @@ export const frontendNavData: NavProps["data"] = [
 			},
 		],
 	},
+	{
+		name: "Purchases",
+		items: [
+			{
+				title: "Purchase Orders",
+				path: "/purchases/orders",
+				icon: <Icon icon="solar:cart-large-bold-duotone" size="24" />,
+			},
+			{
+				title: "Suppliers",
+				path: "/purchases/suppliers",
+				icon: <Icon icon="solar:users-group-rounded-bold-duotone" size="24" />,
+			},
+		],
+	},
 ];

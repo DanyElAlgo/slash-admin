@@ -17,6 +17,14 @@ export function getFrontendDashboardRoutes(): RouteObject[] {
 			],
 		},
 		{
+			path: "purchases",
+			children: [
+				{ index: true, element: <Navigate to="orders" replace /> },
+				{ path: "orders", element: Component("/pages/purchases/orders") },
+				{ path: "suppliers", element: Component("/pages/purchases/suppliers") },
+			],
+		},
+		{
 			path: "error",
 			children: [
 				{ index: true, element: <Navigate to="403" replace /> },

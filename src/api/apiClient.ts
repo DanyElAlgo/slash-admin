@@ -77,5 +77,6 @@ class APIClient {
 
 export const inventoryApiClient = new APIClient(createAxiosInstance(GLOBAL_CONFIG.inventoryApiUrl));
 export const salesApiClient = new APIClient(createAxiosInstance(GLOBAL_CONFIG.salesApiUrl));
+export const purchasesApiClient = new APIClient(createAxiosInstance(GLOBAL_CONFIG.purchasesApiUrl));
 
 export default new APIClient(createAxiosInstance(GLOBAL_CONFIG.apiBaseUrl));
