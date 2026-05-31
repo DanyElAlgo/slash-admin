@@ -139,10 +139,10 @@ export default function SuppliersPage() {
 				<Card className="p-6 space-y-4">
 					<Table>
 						<TableHeader>
-							<TableRow>
-								<TableHead>CEN</TableHead>
-								<TableHead>Name</TableHead>
-								<TableHead className="text-right">Actions</TableHead>
+							<TableRow className="grid-cols-3 items-center">
+								<TableHead className="col-span-1">CEN</TableHead>
+								<TableHead className="col-span-1">Name</TableHead>
+								<TableHead className="text-right col-span-1">Actions</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
@@ -156,10 +156,10 @@ export default function SuppliersPage() {
 								</TableRow>
 							) : (
 								suppliers.map((supplier) => (
-									<TableRow key={supplier.supplierCen}>
-										<TableCell className="text-xs text-muted-foreground">{supplier.supplierCen}</TableCell>
-										<TableCell className="font-medium">{supplier.name}</TableCell>
-										<TableCell className="text-right space-x-1">
+									<TableRow className="grid-cols-3 items-center" key={supplier.supplierCen}>
+										<TableCell className="text-xs text-muted-foreground col-span-1">{supplier.supplierCen}</TableCell>
+										<TableCell className="font-medium col-span-1">{supplier.name}</TableCell>
+										<TableCell className="text-right space-x-1 col-span-1">
 											<Button variant="ghost" size="sm" onClick={() => handleOpenEdit(supplier)}>
 												<Pencil className="h-4 w-4" />
 											</Button>

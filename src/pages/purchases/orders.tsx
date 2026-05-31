@@ -288,14 +288,14 @@ export default function PurchaseOrdersPage() {
 
 					<Table>
 						<TableHeader>
-							<TableRow>
-								<TableHead>Order</TableHead>
-								<TableHead>Supplier</TableHead>
-								<TableHead>Status</TableHead>
-								<TableHead className="text-right">Items</TableHead>
-								<TableHead>Created</TableHead>
-								<TableHead>Confirmed</TableHead>
-								<TableHead className="text-right">Actions</TableHead>
+							<TableRow className="grid-cols-7 items-center">
+								<TableHead className="col-span-1">Order</TableHead>
+								<TableHead className="col-span-1">Supplier</TableHead>
+								<TableHead className="col-span-1">Status</TableHead>
+								<TableHead className="text-right col-span-1">Items</TableHead>
+								<TableHead className="col-span-1">Created</TableHead>
+								<TableHead className="col-span-1">Confirmed</TableHead>
+								<TableHead className="text-right col-span-1">Actions</TableHead>
 							</TableRow>
 						</TableHeader>
 						<TableBody>
@@ -311,16 +311,22 @@ export default function PurchaseOrdersPage() {
 								</TableRow>
 							) : (
 								orders.items.map((order) => (
-									<TableRow key={order.orderCen}>
-										<TableCell className="font-medium">{order.orderCen}</TableCell>
-										<TableCell>{supplierByCen.get(order.supplierCen)?.name ?? order.supplierCen}</TableCell>
-										<TableCell>
+									<TableRow className="grid-cols-7 items-center" key={order.orderCen}>
+										<TableCell className="font-medium col-span-1">{order.orderCen}</TableCell>
+										<TableCell className="col-span-1">
+											{supplierByCen.get(order.supplierCen)?.name ?? order.supplierCen}
+										</TableCell>
+										<TableCell className="col-span-1">
 											<Badge variant={STATUS_VARIANT[order.status]}>{STATUS_LABEL[order.status]}</Badge>
 										</TableCell>
-										<TableCell className="text-right">{order.itemCount}</TableCell>
-										<TableCell className="text-xs text-muted-foreground">{formatDate(order.createdAt)}</TableCell>
-										<TableCell className="text-xs text-muted-foreground">{formatDate(order.confirmedAt)}</TableCell>
-										<TableCell className="text-right">
+										<TableCell className="text-right col-span-1">{order.itemCount}</TableCell>
+										<TableCell className="text-xs text-muted-foreground col-span-1">
+											{formatDate(order.createdAt)}
+										</TableCell>
+										<TableCell className="text-xs text-muted-foreground col-span-1">
+											{formatDate(order.confirmedAt)}
+										</TableCell>
+										<TableCell className="text-right col-span-1">
 											<Button variant="ghost" size="sm" onClick={() => setDetailCen(order.orderCen)}>
 												View
 											</Button>
@@ -508,9 +514,9 @@ export default function PurchaseOrdersPage() {
 
 							<Table>
 								<TableHeader>
-									<TableRow>
-										<TableHead>Product</TableHead>
-										<TableHead className="text-right">Quantity</TableHead>
+									<TableRow className="grid-cols-2 items-center">
+										<TableHead className="col-span-1">Product</TableHead>
+										<TableHead className="text-right col-span-1">Quantity</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
@@ -520,9 +526,11 @@ export default function PurchaseOrdersPage() {
 										</TableRow>
 									) : (
 										detail.items.map((line) => (
-											<TableRow key={line.productCen}>
-												<TableCell>{productByCen.get(line.productCen)?.name ?? line.productCen}</TableCell>
-												<TableCell className="text-right">{line.quantity}</TableCell>
+											<TableRow className="grid-cols-2 items-center" key={line.productCen}>
+												<TableCell className="col-span-1">
+													{productByCen.get(line.productCen)?.name ?? line.productCen}
+												</TableCell>
+												<TableCell className="text-right col-span-1">{line.quantity}</TableCell>
 											</TableRow>
 										))
 									)}

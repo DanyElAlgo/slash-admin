@@ -383,26 +383,26 @@ export default function POSPage() {
 									) : (
 										<Table>
 											<TableHeader>
-												<TableRow>
-													<TableHead>Product</TableHead>
-													<TableHead className="text-right">Qty</TableHead>
-													<TableHead className="text-right">Price</TableHead>
-													<TableHead className="text-right">Total</TableHead>
-													<TableHead>Notes</TableHead>
-													<TableHead className="text-right">Actions</TableHead>
+												<TableRow className="grid-cols-6 items-center">
+													<TableHead className="col-span-1">Product</TableHead>
+													<TableHead className="text-right col-span-1">Qty</TableHead>
+													<TableHead className="text-right col-span-1">Price</TableHead>
+													<TableHead className="text-right col-span-1">Total</TableHead>
+													<TableHead className="col-span-1">Notes</TableHead>
+													<TableHead className="text-right col-span-1">Actions</TableHead>
 												</TableRow>
 											</TableHeader>
 											<TableBody>
 												{ticketItems.map((item) => (
-													<TableRow key={item.ticketItemCen} className="text-sm">
-														<TableCell className="font-medium">{item.productName}</TableCell>
-														<TableCell className="text-right">{item.quantity}</TableCell>
-														<TableCell className="text-right">${item.unitPrice.toFixed(2)}</TableCell>
-														<TableCell className="text-right font-semibold">
+													<TableRow key={item.ticketItemCen} className="grid-cols-6 items-center text-sm">
+														<TableCell className="font-medium col-span-1">{item.productName}</TableCell>
+														<TableCell className="text-right col-span-1">{item.quantity}</TableCell>
+														<TableCell className="text-right col-span-1">${item.unitPrice.toFixed(2)}</TableCell>
+														<TableCell className="text-right font-semibold col-span-1">
 															${(item.quantity * item.unitPrice).toFixed(2)}
 														</TableCell>
-														<TableCell className="text-xs max-w-xs truncate">{item.note || "-"}</TableCell>
-														<TableCell className="text-right">
+														<TableCell className="text-xs max-w-xs truncate col-span-1">{item.note || "-"}</TableCell>
+														<TableCell className="text-right col-span-1">
 															<Button
 																variant="ghost"
 																size="sm"

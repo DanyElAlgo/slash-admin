@@ -540,14 +540,14 @@ export default function InventoryDashboard() {
 
 							<Table>
 								<TableHeader>
-									<TableRow>
-										<TableHead>SKU</TableHead>
-										<TableHead>Name</TableHead>
-										<TableHead>Category</TableHead>
-										<TableHead>Unit</TableHead>
-										<TableHead>Price</TableHead>
-										<TableHead>Status</TableHead>
-										<TableHead className="text-right">Actions</TableHead>
+									<TableRow className="grid-cols-7 items-center">
+										<TableHead className="col-span-1">SKU</TableHead>
+										<TableHead className="col-span-1">Name</TableHead>
+										<TableHead className="col-span-1">Category</TableHead>
+										<TableHead className="col-span-1">Unit</TableHead>
+										<TableHead className="col-span-1">Price</TableHead>
+										<TableHead className="col-span-1">Status</TableHead>
+										<TableHead className="text-right col-span-1">Actions</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
@@ -563,13 +563,13 @@ export default function InventoryDashboard() {
 										</TableRow>
 									) : (
 										filteredProducts.map((product) => (
-											<TableRow key={product.productCen}>
-												<TableCell className="text-xs text-muted-foreground">{product.sku}</TableCell>
-												<TableCell className="font-medium">{product.name}</TableCell>
-												<TableCell>{product.categoryName || "—"}</TableCell>
-												<TableCell>{product.unitName || "—"}</TableCell>
-												<TableCell>${product.salePrice.toFixed(2)}</TableCell>
-												<TableCell>
+											<TableRow className="grid-cols-7 items-center" key={product.productCen}>
+												<TableCell className="text-xs text-muted-foreground col-span-1">{product.sku}</TableCell>
+												<TableCell className="font-medium col-span-1">{product.name}</TableCell>
+												<TableCell className="col-span-1">{product.categoryName || "—"}</TableCell>
+												<TableCell className="col-span-1">{product.unitName || "—"}</TableCell>
+												<TableCell className="col-span-1">${product.salePrice.toFixed(2)}</TableCell>
+												<TableCell className="col-span-1">
 													<Badge>{normalizeStatus(product.status)}</Badge>
 												</TableCell>
 												<TableCell className="text-right space-x-2">
@@ -611,18 +611,18 @@ export default function InventoryDashboard() {
 								</div>
 								<Table>
 									<TableHeader>
-										<TableRow>
-											<TableHead>Name</TableHead>
-											<TableHead>Description</TableHead>
-											<TableHead className="text-right">Actions</TableHead>
+										<TableRow className="grid-cols-3 items-center">
+											<TableHead className="col-span-1">Name</TableHead>
+											<TableHead className="col-span-1">Description</TableHead>
+											<TableHead className="text-right col-span-1">Actions</TableHead>
 										</TableRow>
 									</TableHeader>
 									<TableBody>
 										{categories.map((category) => (
-											<TableRow key={category.categoryCen}>
-												<TableCell className="font-medium">{category.name}</TableCell>
-												<TableCell>{category.description || "—"}</TableCell>
-												<TableCell className="text-right">
+											<TableRow className="grid-cols-3 items-center" key={category.categoryCen}>
+												<TableCell className="font-medium col-span-1">{category.name}</TableCell>
+												<TableCell className="col-span-1">{category.description || "—"}</TableCell>
+												<TableCell className="text-right col-span-1">
 													<Button
 														variant="ghost"
 														size="sm"
@@ -650,18 +650,18 @@ export default function InventoryDashboard() {
 								</div>
 								<Table>
 									<TableHeader>
-										<TableRow>
-											<TableHead>Name</TableHead>
-											<TableHead>Abbreviation</TableHead>
-											<TableHead className="text-right">Actions</TableHead>
+										<TableRow className="grid-cols-3 items-center">
+											<TableHead className="col-span-1">Name</TableHead>
+											<TableHead className="col-span-1">Abbreviation</TableHead>
+											<TableHead className="text-right col-span-1">Actions</TableHead>
 										</TableRow>
 									</TableHeader>
 									<TableBody>
 										{units.map((unit) => (
-											<TableRow key={unit.unitCen}>
-												<TableCell className="font-medium">{unit.name}</TableCell>
-												<TableCell>{unit.abbreviation || "—"}</TableCell>
-												<TableCell className="text-right">
+											<TableRow className="grid-cols-3 items-center" key={unit.unitCen}>
+												<TableCell className="font-medium col-span-1">{unit.name}</TableCell>
+												<TableCell className="col-span-1">{unit.abbreviation || "—"}</TableCell>
+												<TableCell className="text-right col-span-1">
 													<Button
 														variant="ghost"
 														size="sm"
@@ -696,18 +696,20 @@ export default function InventoryDashboard() {
 								</div>
 								<Table>
 									<TableHeader>
-										<TableRow>
-											<TableHead>Name</TableHead>
-											<TableHead>Status</TableHead>
-											<TableHead className="text-right">Actions</TableHead>
+										<TableRow className="grid-cols-3 items-center">
+											<TableHead className="col-span-1">Name</TableHead>
+											<TableHead className="col-span-1">Status</TableHead>
+											<TableHead className="text-right col-span-1">Actions</TableHead>
 										</TableRow>
 									</TableHeader>
 									<TableBody>
 										{warehouses.map((warehouse) => (
-											<TableRow key={warehouse.warehouseCen}>
-												<TableCell className="font-medium">{warehouse.name}</TableCell>
-												<TableCell>{warehouse.isActive === false ? "Inactive" : "Active"}</TableCell>
-												<TableCell className="text-right space-x-2">
+											<TableRow className="grid-cols-3 items-center" key={warehouse.warehouseCen}>
+												<TableCell className="font-medium col-span-1">{warehouse.name}</TableCell>
+												<TableCell className="col-span-1">
+													{warehouse.isActive === false ? "Inactive" : "Active"}
+												</TableCell>
+												<TableCell className="text-right space-x-2 col-span-1">
 													<Button
 														variant="ghost"
 														size="sm"
@@ -741,12 +743,12 @@ export default function InventoryDashboard() {
 							</div>
 							<Table>
 								<TableHeader>
-									<TableRow>
-										<TableHead>Product</TableHead>
-										<TableHead>Warehouse</TableHead>
-										<TableHead className="text-right">Available</TableHead>
-										<TableHead className="text-right">Reserved</TableHead>
-										<TableHead>Status</TableHead>
+									<TableRow className="grid-cols-5 items-center">
+										<TableHead className="col-span-1">Product</TableHead>
+										<TableHead className="col-span-1">Warehouse</TableHead>
+										<TableHead className="text-right col-span-1">Available</TableHead>
+										<TableHead className="text-right col-span-1">Reserved</TableHead>
+										<TableHead className="col-span-1">Status</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
@@ -758,12 +760,12 @@ export default function InventoryDashboard() {
 										</TableRow>
 									) : (
 										stockItems.map((item) => (
-											<TableRow key={`${item.productCen}-${item.warehouseCen}`}>
-												<TableCell className="font-medium">{item.productName}</TableCell>
-												<TableCell>{item.warehouseName}</TableCell>
-												<TableCell className="text-right">{item.availableQuantity}</TableCell>
-												<TableCell className="text-right">{item.reservedQuantity}</TableCell>
-												<TableCell>
+											<TableRow className="grid-cols-5 items-center" key={`${item.productCen}-${item.warehouseCen}`}>
+												<TableCell className="font-medium col-span-1">{item.productName}</TableCell>
+												<TableCell className="col-span-1">{item.warehouseName}</TableCell>
+												<TableCell className="text-right col-span-1">{item.availableQuantity}</TableCell>
+												<TableCell className="text-right col-span-1">{item.reservedQuantity}</TableCell>
+												<TableCell className="col-span-1">
 													<Badge variant={item.isLowStock ? "secondary" : "default"}>
 														{item.isLowStock ? "Low" : "Ok"}
 													</Badge>
@@ -786,12 +788,12 @@ export default function InventoryDashboard() {
 							</div>
 							<Table>
 								<TableHeader>
-									<TableRow>
-										<TableHead>Document</TableHead>
-										<TableHead>Type</TableHead>
-										<TableHead>Status</TableHead>
-										<TableHead className="text-right">Items</TableHead>
-										<TableHead>Created</TableHead>
+									<TableRow className="grid-cols-5 items-center">
+										<TableHead className="col-span-1">Document</TableHead>
+										<TableHead className="col-span-1">Type</TableHead>
+										<TableHead className="col-span-1">Status</TableHead>
+										<TableHead className="text-right col-span-1">Items</TableHead>
+										<TableHead className="col-span-1">Created</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
@@ -803,12 +805,12 @@ export default function InventoryDashboard() {
 										</TableRow>
 									) : (
 										documents.map((doc) => (
-											<TableRow key={doc.documentCen}>
-												<TableCell className="font-medium">{doc.documentCen}</TableCell>
-												<TableCell>{doc.documentType}</TableCell>
-												<TableCell>{doc.status}</TableCell>
-												<TableCell className="text-right">{doc.totalItems}</TableCell>
-												<TableCell className="text-xs text-muted-foreground">{doc.createdAt}</TableCell>
+											<TableRow className="grid-cols-5 items-center" key={doc.documentCen}>
+												<TableCell className="font-medium col-span-1">{doc.documentCen}</TableCell>
+												<TableCell className="col-span-1">{doc.documentType}</TableCell>
+												<TableCell className="col-span-1">{doc.status}</TableCell>
+												<TableCell className="text-right col-span-1">{doc.totalItems}</TableCell>
+												<TableCell className="text-xs text-muted-foreground col-span-1">{doc.createdAt}</TableCell>
 											</TableRow>
 										))
 									)}
@@ -1205,13 +1207,13 @@ export default function InventoryDashboard() {
 					{!kardexProduct ? null : (
 						<Table>
 							<TableHeader>
-								<TableRow>
-									<TableHead>Type</TableHead>
-									<TableHead className="text-right">Quantity</TableHead>
-									<TableHead>Warehouse</TableHead>
-									<TableHead>Reason</TableHead>
-									<TableHead>Document</TableHead>
-									<TableHead>Created</TableHead>
+								<TableRow className="grid-cols-6 items-center">
+									<TableHead className="col-span-1">Type</TableHead>
+									<TableHead className="text-right col-span-1">Quantity</TableHead>
+									<TableHead className="col-span-1">Warehouse</TableHead>
+									<TableHead className="col-span-1">Reason</TableHead>
+									<TableHead className="col-span-1">Document</TableHead>
+									<TableHead className="col-span-1">Created</TableHead>
 								</TableRow>
 							</TableHeader>
 							<TableBody>
@@ -1227,13 +1229,15 @@ export default function InventoryDashboard() {
 									</TableRow>
 								) : (
 									kardexEntries.map((entry) => (
-										<TableRow key={entry.movementCen}>
-											<TableCell>{entry.movementType}</TableCell>
-											<TableCell className="text-right">{entry.quantity}</TableCell>
-											<TableCell className="text-xs">{entry.warehouseCen}</TableCell>
-											<TableCell className="text-xs">{entry.reason || "—"}</TableCell>
-											<TableCell className="text-xs text-muted-foreground">{entry.documentCen || "—"}</TableCell>
-											<TableCell className="text-xs text-muted-foreground">{entry.createdAt}</TableCell>
+										<TableRow className="grid-cols-6 items-center" key={entry.movementCen}>
+											<TableCell className="col-span-1">{entry.movementType}</TableCell>
+											<TableCell className="text-right col-span-1">{entry.quantity}</TableCell>
+											<TableCell className="text-xs col-span-1">{entry.warehouseCen}</TableCell>
+											<TableCell className="text-xs col-span-1">{entry.reason || "—"}</TableCell>
+											<TableCell className="text-xs text-muted-foreground col-span-1">
+												{entry.documentCen || "—"}
+											</TableCell>
+											<TableCell className="text-xs text-muted-foreground col-span-1">{entry.createdAt}</TableCell>
 										</TableRow>
 									))
 								)}
