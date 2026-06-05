@@ -5,17 +5,19 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import type { UserInfo, UserToken } from "#/entity";
 import { StorageEnum } from "#/enum";
 import userService, { type SignInReq } from "@/api/services/userService";
-import type { Business } from "@/types/entity";
+import type { Business, Warehouse } from "@/types/entity";
 
 type UserStore = {
 	userInfo: Partial<UserInfo>;
 	userToken: UserToken;
 	currentBusiness: Business | null;
+	currentWarehouse: Warehouse | null;
 
 	actions: {
 		setUserInfo: (userInfo: UserInfo) => void;
 		setUserToken: (token: UserToken) => void;
 		setCurrentBusiness: (business: Business) => void;
+		setCurrentWarehouse: (warehouse: Warehouse | null) => void;
 		clearUserInfoAndToken: () => void;
 	};
 };
@@ -26,6 +28,7 @@ const useUserStore = create<UserStore>()(
 			userInfo: {},
 			userToken: {},
 			currentBusiness: null,
+			currentWarehouse: null,
 			actions: {
 				setUserInfo: (userInfo) => {
 					set({ userInfo });
@@ -34,10 +37,15 @@ const useUserStore = create<UserStore>()(
 					set({ userToken });
 				},
 				setCurrentBusiness: (business) => {
-					set({ currentBusiness: business });
+					// Switching company invalidates the selected warehouse: it belongs to the
+					// previous company. Force a fresh pick for the new company.
+					set({ currentBusiness: business, currentWarehouse: null });
+				},
+				setCurrentWarehouse: (warehouse) => {
+					set({ currentWarehouse: warehouse });
 				},
 				clearUserInfoAndToken() {
-					set({ userInfo: {}, userToken: {}, currentBusiness: null });
+					set({ userInfo: {}, userToken: {}, currentBusiness: null, currentWarehouse: null });
 				},
 			},
 		}),
@@ -48,6 +56,7 @@ const useUserStore = create<UserStore>()(
 				[StorageEnum.UserInfo]: state.userInfo,
 				[StorageEnum.UserToken]: state.userToken,
 				currentBusiness: state.currentBusiness,
+				currentWarehouse: state.currentWarehouse,
 			}),
 		},
 	),
@@ -59,6 +68,7 @@ export const useUserPermissions = () => useUserStore((state) => state.userInfo.p
 export const useUserRoles = () => useUserStore((state) => state.userInfo.roles || []);
 export const useUserActions = () => useUserStore((state) => state.actions);
 export const useCurrentBusiness = () => useUserStore((state) => state.currentBusiness);
+export const useCurrentWarehouse = () => useUserStore((state) => state.currentWarehouse);
 
 export const useSignIn = () => {
 	const { setUserToken, setUserInfo } = useUserActions();

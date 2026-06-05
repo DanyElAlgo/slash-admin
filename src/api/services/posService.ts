@@ -33,10 +33,10 @@ const posService = {
 			url: `/sales/companies/${companyCen}/tickets`,
 		}),
 
-	createTicket: (companyCen: string, data?: { waiterCen?: string }) =>
+	createTicket: (companyCen: string, data: { warehouseCen: string; waiterCen?: string }) =>
 		salesApiClient.post<TicketContractResponse>({
 			url: `/sales/companies/${companyCen}/tickets`,
-			data: data ?? {},
+			data,
 		}),
 
 	getTicketItems: (companyCen: string, ticketCen: string) =>

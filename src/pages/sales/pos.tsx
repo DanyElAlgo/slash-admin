@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import BusinessGate from "@/components/business-gate";
 import catalogService from "@/api/services/catalogService";
 import posService from "@/api/services/posService";
-import { useCurrentBusiness } from "@/store/userStore";
+import { useCurrentBusiness, useCurrentWarehouse } from "@/store/userStore";
 import type {
 	PaymentMethodContractResponse,
 	ProcessPaymentConflict,
@@ -27,6 +27,8 @@ import { Textarea } from "@/ui/textarea";
 export default function POSPage() {
 	const business = useCurrentBusiness();
 	const companyCen = business?.companyCen ?? "";
+	const warehouse = useCurrentWarehouse();
+	const warehouseCen = warehouse?.warehouseCen ?? "";
 
 	const [tickets, setTickets] = useState<TicketContractResponse[]>([]);
 	const [selectedTicketCen, setSelectedTicketCen] = useState<string | null>(null);
@@ -68,7 +70,10 @@ export default function POSPage() {
 		try {
 			const [ticketsData, productsData, paymentMethodsData, waitersData] = await Promise.all([
 				posService.getTickets(companyCen),
-				catalogService.getProducts(companyCen, { onlyAvailable: true }),
+				catalogService.getProducts(companyCen, {
+					onlyAvailable: true,
+					warehouseCen: warehouseCen || undefined,
+				}),
 				posService.getPaymentMethods(),
 				posService.getWaiters(companyCen),
 			]);
@@ -81,7 +86,7 @@ export default function POSPage() {
 		} finally {
 			setLoading(false);
 		}
-	}, [companyCen]);
+	}, [companyCen, warehouseCen]);
 
 	useEffect(() => {
 		loadAllData();
@@ -116,8 +121,12 @@ export default function POSPage() {
 	);
 
 	const handleCreateTicket = async () => {
+		if (!warehouseCen) {
+			toast.error("Select a warehouse first");
+			return;
+		}
 		try {
-			const ticket = await posService.createTicket(companyCen);
+			const ticket = await posService.createTicket(companyCen, { warehouseCen });
 			setTickets((prev) => [...prev, ticket]);
 			setSelectedTicketCen(ticket.ticketCen);
 			toast.success("Ticket created");

@@ -7,6 +7,7 @@ import BreadCrumb from "../components/bread-crumb";
 import NoticeButton from "../components/notice";
 import SearchBar from "../components/search-bar";
 import SettingButton from "../components/setting-button";
+import WarehouseSelect from "../components/warehouse-select";
 
 interface HeaderProps {
 	leftSlot?: ReactNode;
@@ -31,6 +32,7 @@ export default function Header({ leftSlot }: HeaderProps) {
 			</div>
 
 			<div className="flex items-center gap-1">
+				<WarehouseSelect />
 				<SearchBar />
 				<LocalePicker />
 				<NoticeButton />

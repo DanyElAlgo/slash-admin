@@ -8,7 +8,7 @@ type Props = {
 export default function LoginAuthGuard({ children }: Props) {
 	const router = useRouter();
 	const { accessToken } = useUserToken();
-	const { setUserToken, setUserInfo, setCurrentBusiness } = useUserActions();
+	const { setUserToken, setUserInfo, setCurrentBusiness, setCurrentWarehouse } = useUserActions();
 
 	const check = useCallback(() => {
 		if (!accessToken) {
@@ -27,11 +27,12 @@ export default function LoginAuthGuard({ children }: Props) {
 				});
 				setUserInfo(mockUser);
 				setCurrentBusiness({ companyCen: "BUS-000002", name: "Dev Business", isActive: true });
+				setCurrentWarehouse({ warehouseCen: "WAR-000003", name: "Dev Warehouse", isActive: true });
 			} else {
 				router.replace("/auth/select-business");
 			}
 		}
-	}, [router, accessToken, setUserToken, setUserInfo, setCurrentBusiness]);
+	}, [router, accessToken, setUserToken, setUserInfo, setCurrentBusiness, setCurrentWarehouse]);
 
 	useEffect(() => {
 		check();
