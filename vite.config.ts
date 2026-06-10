@@ -1,9 +1,32 @@
+import { fileURLToPath } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
 import { vanillaExtractPlugin } from "@vanilla-extract/vite-plugin";
 import react from "@vitejs/plugin-react";
 import { visualizer } from "rollup-plugin-visualizer";
-import { defineConfig, loadEnv } from "vite";
-import tsconfigPaths from "vite-tsconfig-paths";
+import { type Plugin, defineConfig, loadEnv } from "vite";
+
+const srcPath = fileURLToPath(new URL("./src", import.meta.url)).replace(/\\/g, "/");
+
+function localAliasPlugin(): Plugin {
+	const entries: Array<[RegExp, string]> = [
+		[/^@\//, `${srcPath}/`],
+		[/^#\//, `${srcPath}/types/`],
+	];
+	return {
+		name: "local-alias",
+		enforce: "pre",
+		async resolveId(source, importer, options) {
+			for (const [re, replacement] of entries) {
+				if (re.test(source)) {
+					const replaced = source.replace(re, replacement);
+					const resolved = await this.resolve(replaced, importer, { skipSelf: true, ...options });
+					return resolved ?? replaced;
+				}
+			}
+			return null;
+		},
+	};
+}
 
 export default defineConfig(({ mode }) => {
 	const env = loadEnv(mode, process.cwd(), "");
@@ -22,9 +45,10 @@ export default defineConfig(({ mode }) => {
 			react(),
 			vanillaExtractPlugin({
 				identifiers: ({ debugId }) => `${debugId}`,
+				unstable_pluginFilter: ({ name }) => name === "local-alias",
 			}),
 			tailwindcss(),
-			tsconfigPaths(),
+			localAliasPlugin(),
 
 			isProduction &&
 				visualizer({
