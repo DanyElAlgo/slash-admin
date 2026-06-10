@@ -1,4 +1,4 @@
-import { CheckCircle2, Plus, RefreshCw, Trash2, X } from "lucide-react";
+import { CheckCircle2, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import inventoryService from "@/api/services/inventoryService";
@@ -202,22 +202,6 @@ export default function PurchaseOrdersPage() {
 		try {
 			await purchasesService.confirmOrder(business.companyCen, detailCen);
 			toast.success("Order confirmed. Stock updated.");
-			const refreshed = await purchasesService.getOrder(business.companyCen, detailCen);
-			setDetail(refreshed);
-			await loadOrders();
-		} catch {
-			// apiClient already toasts
-		} finally {
-			setActionLoading(false);
-		}
-	};
-
-	const handleCancel = async () => {
-		if (!business?.companyCen || !detailCen) return;
-		setActionLoading(true);
-		try {
-			await purchasesService.cancelOrder(business.companyCen, detailCen);
-			toast.success("Order cancelled.");
 			const refreshed = await purchasesService.getOrder(business.companyCen, detailCen);
 			setDetail(refreshed);
 			await loadOrders();
@@ -539,9 +523,6 @@ export default function PurchaseOrdersPage() {
 
 							{detail.status === PurchaseStatus.Pending ? (
 								<div className="flex justify-end gap-2">
-									<Button variant="outline" onClick={handleCancel} disabled={actionLoading}>
-										<X className="mr-2 h-4 w-4" /> Cancel order
-									</Button>
 									<Button onClick={handleConfirm} disabled={actionLoading}>
 										<CheckCircle2 className="mr-2 h-4 w-4" />
 										{actionLoading ? "Confirming..." : "Confirm & receive stock"}

@@ -372,12 +372,6 @@ export interface PurchaseOrderConfirmation {
 	confirmedAt: string;
 }
 
-export interface PurchaseOrderCancellation {
-	orderCen: string;
-	status: PurchaseStatus;
-	cancelledAt: string;
-}
-
 export interface CreatePurchaseOrderItem {
 	productCen: string;
 	quantity: number;
@@ -392,25 +386,4 @@ export interface CreatePurchaseOrderRequest {
 export interface Supplier {
 	supplierCen: string;
 	name: string;
-}
-
-export interface SupplierDetail {
-	supplierCen: string;
-	name: string;
-	contactEmail?: string;
-	contactPhone?: string;
-	isActive: boolean;
-}
-
-export interface CreateSupplierRequest {
-	name: string;
-	contactEmail?: string;
-	contactPhone?: string;
-}
-
-export interface UpdateSupplierRequest {
-	name: string;
-	contactEmail?: string;
-	contactPhone?: string;
-	isActive: boolean;
 }
