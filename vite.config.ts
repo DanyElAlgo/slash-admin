@@ -1,32 +1,13 @@
+import { realpathSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
 import { vanillaExtractPlugin } from "@vanilla-extract/vite-plugin";
 import react from "@vitejs/plugin-react";
 import { visualizer } from "rollup-plugin-visualizer";
-import { type Plugin, defineConfig, loadEnv } from "vite";
+import { defineConfig, loadEnv } from "vite";
 
-const srcPath = fileURLToPath(new URL("./src", import.meta.url)).replace(/\\/g, "/");
-
-function localAliasPlugin(): Plugin {
-	const entries: Array<[RegExp, string]> = [
-		[/^@\//, `${srcPath}/`],
-		[/^#\//, `${srcPath}/types/`],
-	];
-	return {
-		name: "local-alias",
-		enforce: "pre",
-		async resolveId(source, importer, options) {
-			for (const [re, replacement] of entries) {
-				if (re.test(source)) {
-					const replaced = source.replace(re, replacement);
-					const resolved = await this.resolve(replaced, importer, { skipSelf: true, ...options });
-					return resolved ?? replaced;
-				}
-			}
-			return null;
-		},
-	};
-}
+const projectRoot = realpathSync.native(fileURLToPath(new URL(".", import.meta.url))).replace(/\\/g, "/");
+const srcPath = `${projectRoot}/src`;
 
 export default defineConfig(({ mode }) => {
 	const env = loadEnv(mode, process.cwd(), "");
@@ -41,14 +22,19 @@ export default defineConfig(({ mode }) => {
 
 	return {
 		base,
+		root: projectRoot,
+		resolve: {
+			alias: [
+				{ find: /^@\//, replacement: `${srcPath}/` },
+				{ find: /^#\//, replacement: `${srcPath}/types/` },
+			],
+		},
 		plugins: [
 			react(),
 			vanillaExtractPlugin({
 				identifiers: ({ debugId }) => `${debugId}`,
-				unstable_pluginFilter: ({ name }) => name === "local-alias",
 			}),
 			tailwindcss(),
-			localAliasPlugin(),
 
 			isProduction &&
 				visualizer({
