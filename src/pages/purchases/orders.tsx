@@ -77,7 +77,7 @@ export default function PurchaseOrdersPage() {
 		setLoading(true);
 		try {
 			const result = await purchasesService.listOrders(business.companyCen, {
-				status: statusFilter === STATUS_FILTER_ALL ? undefined : (Number(statusFilter) as PurchaseStatus),
+				status: statusFilter === STATUS_FILTER_ALL ? undefined : (statusFilter as PurchaseStatus),
 				page,
 				pageSize: PAGE_SIZE,
 				sortDescending: true,

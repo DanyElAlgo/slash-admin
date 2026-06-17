@@ -325,9 +325,9 @@ export interface SellableProductContractDto {
 // =============================================================================
 
 export enum PurchaseStatus {
-	Pending = 0,
-	Confirmed = 1,
-	Cancelled = 2,
+	Pending = "Pending",
+	Confirmed = "Confirmed",
+	Cancelled = "Cancelled",
 }
 
 export interface PagedResultDto<T> {

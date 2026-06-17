@@ -110,7 +110,7 @@ const posService = {
 			data: { paymentMethodCode },
 			validateStatus: (status: number) => status === 200 || status === 409,
 		});
-		if (result && "saleCen" in result) {
+		if (result?.isSuccess !== false && result?.saleCen) {
 			return { success: result as PayTicketContractResponse, conflict: null };
 		}
 		return { success: null, conflict: result as ProcessPaymentConflict };

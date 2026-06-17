@@ -1,5 +1,5 @@
 import Logo from "@/components/logo";
-import { down, useMediaQuery } from "@/hooks";
+import { down, useMediaQuery, useRestockEvents } from "@/hooks";
 import { useSettings } from "@/store/settingStore";
 import { ThemeLayout } from "#/enum";
 import Header from "./header";
@@ -8,6 +8,8 @@ import { NavHorizontalLayout, NavMobileLayout, NavVerticalLayout, useFilteredNav
 
 export default function DashboardLayout() {
 	const isMobile = useMediaQuery(down("md"));
+
+	useRestockEvents();
 
 	return (
 		<div data-slot="slash-layout-root" className="w-full min-h-screen bg-background">
