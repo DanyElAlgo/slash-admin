@@ -19,7 +19,7 @@ export function useRestockEvents() {
 	useEffect(() => {
 		if (!companyCen) return;
 
-		const url = `${GLOBAL_CONFIG.inventoryApiUrl}/api/inventory/companies/${companyCen}/restock-events`;
+		const url = `${GLOBAL_CONFIG.inventoryApiUrl}/inventory/companies/${companyCen}/restock-events`;
 		const source = new EventSource(url);
 
 		source.onmessage = (e) => {
